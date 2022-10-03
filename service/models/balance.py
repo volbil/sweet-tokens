@@ -10,7 +10,7 @@ class Balance(BaseTable, table=True):
     amount: Union[condecimal(max_digits=28, decimal_places=8), None] = None
 
     address_id: Optional[int] = Field(default=None, foreign_key="service_addresses.id")
-    address: Optional["Address"] = Relationship(back_populates="balance")
+    address: Optional["Address"] = Relationship(back_populates="balances")
 
     token_id: Optional[int] = Field(default=None, foreign_key="service_tokens.id")
     token: Optional["Token"] = Relationship(back_populates="balances")

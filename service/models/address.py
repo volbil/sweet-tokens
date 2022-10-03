@@ -9,8 +9,7 @@ class Address(BaseTable, table=True):
     address: str
     nonce: int
 
-    balance_id: Optional[int] = Field(default=None, foreign_key="service_balances.id")
-    balance: Optional["Balance"] = Relationship(back_populates="addresses")
+    balances: List["Balance"] = Relationship(back_populates="address")
 
     transfers_send: List["Transfer"] = Relationship(
         back_populates="sender",
