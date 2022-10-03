@@ -1,0 +1,13 @@
+*/**/__pycache__/*
+__pycache__/
+venv/*
+config.py
+test.py
+
+# misc
+.DS_STORE
+*.db
+*/**/*.db
+
+# PyCharm
+.idea
