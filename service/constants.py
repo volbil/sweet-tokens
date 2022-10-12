@@ -1,0 +1,5 @@
+CREATE = 1
+ISSUE = 2
+TRANSFER = 3
+BAN = 4
+UNBAN = 5
