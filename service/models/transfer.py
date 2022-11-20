@@ -1,30 +1,21 @@
-from sqlmodel import Field, Relationship
-from pydantic import condecimal
-from .base import BaseTable
-from typing import Optional
-from typing import Union
+from tortoise import fields
+from .base import Base
 
-class Transfer(BaseTable, table=True):
-    __tablename__ = "service_transfer"
+class Transfer(Base):
+    amount = fields.DecimalField(max_digits=28, decimal_places=8)
+    txid = fields.CharField(unique=True, max_length=64)
 
-    amount: Union[condecimal(max_digits=28, decimal_places=8), None] = None
-    txid: str
-
-    token_id: Optional[int] = Field(default=None, foreign_key="service_tokens.id")
-    token: Optional["Token"] = Relationship(back_populates="transfers")
-
-    sender_id: Optional[int] = Field(default=None, foreign_key="service_addresses.id")
-    sender: Optional["Address"] = Relationship(
-        back_populates="transfers_send",
-        sa_relationship_kwargs=dict(
-            primaryjoin="Address.id==Transfer.sender_id"
-        )
+    token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
+        "models.Token", related_name="transfers"
     )
 
-    receiver_id: Optional[int] = Field(default=None, foreign_key="service_addresses.id")
-    receiver: Optional["Address"] = Relationship(
-        back_populates="transfers_receive",
-        sa_relationship_kwargs=dict(
-            primaryjoin="Address.id==Transfer.receiver_id"
-        )
+    sender: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="transfers_send"
     )
+
+    receiver: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="transfers_receive"
+    )
+
+    class Meta:
+        table = "service_transfers"

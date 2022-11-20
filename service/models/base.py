@@ -1,5 +1,13 @@
-from sqlmodel import Field, SQLModel
-from typing import Union
+from tortoise.models import Model
+from datetime import datetime
+from tortoise import fields
 
-class BaseTable(SQLModel):
-    id: Union[int, None] = Field(default=None, primary_key=True)
+class Base(Model):
+    id = fields.UUIDField(pk=True)
+
+    @property
+    def reference(self):
+        return str(self.id)
+
+class NativeDatetimeField(fields.Field[datetime], datetime):
+    SQL_TYPE = "TIMESTAMP"

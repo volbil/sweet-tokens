@@ -1,26 +1,16 @@
-from sqlmodel import Field, Relationship
-from .base import BaseTable
-from typing import Optional
-from typing import List
+from tortoise import fields
+from .base import Base
 
-class Address(BaseTable, table=True):
-    __tablename__ = "service_addresses"
+class Address(Base):
+    address = fields.CharField(unique=True, max_length=40)
+    nonce = fields.IntField(default=0)
 
-    address: str
-    nonce: int
+    banned = fields.BooleanField(default=False)
 
-    balances: List["Balance"] = Relationship(back_populates="address")
+    balances = fields.ReverseRelation["Balance"]
 
-    transfers_send: List["Transfer"] = Relationship(
-        back_populates="sender",
-        sa_relationship_kwargs=dict(
-            primaryjoin="Address.id==Transfer.sender_id"
-        )
-    )
+    transfers_send = fields.ReverseRelation["Transfer"]
+    transfers_receive = fields.ReverseRelation["Transfer"]
 
-    transfers_receive: List["Transfer"] = Relationship(
-        back_populates="receiver",
-        sa_relationship_kwargs=dict(
-            primaryjoin="Address.id==Transfer.receiver_id"
-        )
-    )
+    class Meta:
+        table = "service_addresses"

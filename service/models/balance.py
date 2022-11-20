@@ -1,16 +1,16 @@
-from sqlmodel import Field, Relationship
-from pydantic import condecimal
-from .base import BaseTable
-from typing import Optional
-from typing import Union
+from tortoise import fields
+from .base import Base
 
-class Balance(BaseTable, table=True):
-    __tablename__ = "service_balances"
+class Balance(Base):
+    amount = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
 
-    amount: Union[condecimal(max_digits=28, decimal_places=8), None] = None
+    address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="balances"
+    )
 
-    address_id: Optional[int] = Field(default=None, foreign_key="service_addresses.id")
-    address: Optional["Address"] = Relationship(back_populates="balances")
+    token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
+        "models.Token", related_name="balances"
+    )
 
-    token_id: Optional[int] = Field(default=None, foreign_key="service_tokens.id")
-    token: Optional["Token"] = Relationship(back_populates="balances")
+    class Meta:
+        table = "service_balances"
