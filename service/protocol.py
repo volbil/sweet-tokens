@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from pydantic import conint, constr
 from pydantic import BaseModel
-import constants
+from . import constants
 import msgpack
 
 class CategoryValidation(BaseModel):
@@ -20,12 +20,6 @@ class IssueValidation(CategoryValidation):
 class TransferValidation(CategoryValidation):
     amount: float
     ticker: constr(strip_whitespace=True, min_length=1, max_length=8)
-
-class BanValidation(CategoryValidation):
-    address: constr(strip_whitespace=True, min_length=40, max_length=40)
-
-class UnbanValidation(CategoryValidation):
-    address: constr(strip_whitespace=True, min_length=40, max_length=40)
 
 class Protocol(object):
     @classmethod
@@ -68,17 +62,15 @@ class Protocol(object):
                 }
 
             elif category == constants.BAN:
-                data = BanValidation(**payload)
+                data = CategoryValidation(**payload)
                 payload = {
-                    "c": data.category,
-                    "a": data.address
+                    "c": data.category
                 }
 
             elif category == constants.UNBAN:
-                data = UnbanValidation(**payload)
+                data = CategoryValidation(**payload)
                 payload = {
-                    "c": data.category,
-                    "a": data.address
+                    "c": data.category
                 }
 
         except ValidationError:
@@ -130,16 +122,6 @@ class Protocol(object):
                 payload["ticker"] = payload.pop("t")
 
                 TransferValidation(**payload)
-
-            elif category == constants.BAN:
-                payload["address"] = payload.pop("a")
-
-                BanValidation(**payload)
-
-            elif category == constants.UNBAN:
-                payload["address"] = payload.pop("a")
-
-                UnbanValidation(**payload)
 
         except ValidationError:
             return None
