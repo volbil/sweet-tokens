@@ -1,1 +1,6 @@
-db_url_async = "postgresql+asyncpg://username:password@localhost:5432/username"
+tortoise = {
+    "db_url": "postgres://user:password@localhost:5432/username",
+    "modules": {"models": ["service.models"]}
+}
+
+admin_address = "ADMIN ADDRESS"
