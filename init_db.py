@@ -1,5 +1,5 @@
+from service.models import Settings, Address
 from tortoise import Tortoise, run_async
-from service.models import Settings
 import config
 
 async def init_db():
@@ -10,6 +10,12 @@ async def init_db():
     if not (await Settings.first()):
         settings = await Settings.create(**{
             "current_height": 0
+        })
+
+    if not (await Address.filter(raw_address=config.admin_address).first()):
+        address = await Address.create(**{
+            "raw_address": config.admin_address,
+            "nonce": 0
         })
 
 if __name__ == "__main__":

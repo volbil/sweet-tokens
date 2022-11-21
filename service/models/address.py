@@ -2,7 +2,7 @@ from tortoise import fields
 from .base import Base
 
 class Address(Base):
-    address = fields.CharField(unique=True, max_length=40)
+    raw_address = fields.CharField(unique=True, max_length=40)
     nonce = fields.IntField(default=0)
 
     banned = fields.BooleanField(default=False)
