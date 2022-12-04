@@ -4,3 +4,5 @@ tortoise = {
 }
 
 admin_address = "ADMIN ADDRESS"
+
+node_endpoint = f"http://rpcuser:rpcpassword@localhost:18443"
