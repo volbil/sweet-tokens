@@ -18,5 +18,8 @@ async def init_db():
             "nonce": 0
         })
 
+    await Tortoise.close_connections()
+
+
 if __name__ == "__main__":
     run_async(init_db())

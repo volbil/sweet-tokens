@@ -1,9 +1,8 @@
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
+from .constants import MAX_VALUE
 from . import constants
 import msgpack
-
-MAX_VALUE = 10000000000000000000
 
 class CategoryValidation(BaseModel):
     category: int = Field(ge=1, le=5)
@@ -38,10 +37,11 @@ class Protocol(object):
             if category == constants.CREATE:
                 data = CreateValidation(**payload)
                 payload = {
+                    "r": data.reissuable,
+                    "d": data.decimals,
                     "c": data.category,
                     "a": data.amount,
-                    "t": data.ticker,
-                    "r": data.reissuable
+                    "t": data.ticker
                 }
 
             elif category == constants.ISSUE:
