@@ -1,25 +1,26 @@
+from pydantic import BaseModel, Field
 from pydantic import ValidationError
-from pydantic import conint, constr
-from pydantic import BaseModel
 from . import constants
 import msgpack
 
+MAX_VALUE = 10000000000000000000
+
 class CategoryValidation(BaseModel):
-    category: conint(ge=1, le=5)
+    category: int = Field(ge=1, le=5)
 
 class CreateValidation(CategoryValidation):
-    amount: float
-    name: constr(strip_whitespace=True, min_length=1, max_length=24)
-    ticker: constr(strip_whitespace=True, min_length=1, max_length=8)
+    ticker: str = Field(min_length=3, max_length=8)
+    amount: int = Field(ge=1, le=MAX_VALUE)
+    decimals: int = Field(ge=1, le=8)
     reissuable: bool
 
 class IssueValidation(CategoryValidation):
-    amount: float
-    ticker: constr(strip_whitespace=True, min_length=1, max_length=8)
+    ticker: str = Field(min_length=3, max_length=8)
+    amount: int = Field(ge=1, le=MAX_VALUE)
 
 class TransferValidation(CategoryValidation):
-    amount: float
-    ticker: constr(strip_whitespace=True, min_length=1, max_length=8)
+    ticker: str = Field(min_length=3, max_length=8)
+    amount: int = Field(ge=1, le=MAX_VALUE)
 
 class Protocol(object):
     @classmethod
@@ -36,11 +37,9 @@ class Protocol(object):
         try:
             if category == constants.CREATE:
                 data = CreateValidation(**payload)
-                # Do this to remove additional fields that are not part of the payload
                 payload = {
                     "c": data.category,
                     "a": data.amount,
-                    "n": data.name,
                     "t": data.ticker,
                     "r": data.reissuable
                 }
@@ -73,11 +72,11 @@ class Protocol(object):
                     "c": data.category
                 }
 
-        except ValidationError:
+        except ValidationError as e:
+            print("Failed to encode payload:", e)
             return None
 
         return msgpack.packb(payload).hex()
-
 
     @classmethod
     def decode(cls, data):
@@ -105,7 +104,6 @@ class Protocol(object):
         try:
             if category == constants.CREATE:
                 payload["amount"] = payload.pop("a")
-                payload["name"] = payload.pop("n")
                 payload["ticker"] = payload.pop("t")
                 payload["reissuable"] = payload.pop("r")
 
@@ -123,7 +121,8 @@ class Protocol(object):
 
                 TransferValidation(**payload)
 
-        except ValidationError:
+        except ValidationError as e:
+            print("Failed to decode payload:", e)
             return None
 
         return payload
