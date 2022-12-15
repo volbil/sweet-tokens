@@ -3,7 +3,11 @@ from .base import Base
 
 class Transfer(Base):
     amount = fields.DecimalField(max_digits=28, decimal_places=8)
-    txid = fields.CharField(unique=True, max_length=66) # 32 bytes + "0x"
+    txid = fields.CharField(unique=True, max_length=64)
+
+    block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
+        "models.Block", related_name="transfers"
+    )
 
     token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
         "models.Token", related_name="transfers"

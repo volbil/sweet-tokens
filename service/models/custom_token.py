@@ -7,8 +7,8 @@ class Token(Base):
     reissuable = fields.BooleanField(default=False)
     decimals = fields.IntField()
 
-    balances = fields.ReverseRelation["Balance"]
     transfers = fields.ReverseRelation["Transfer"]
+    balances = fields.ReverseRelation["Balance"]
 
     class Meta:
         table = "service_tokens"
