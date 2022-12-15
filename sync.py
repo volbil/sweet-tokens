@@ -1,5 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from service.scheduler import parse_blockchain
+from service.sync import parse_blockchain
 import asyncio
 
 def init_scheduler():
