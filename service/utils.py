@@ -1,8 +1,13 @@
+from datetime import datetime
 from decimal import Decimal
 import aiohttp
 import config
 import json
 import math
+
+def log_message(message):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{now} {message}")
 
 def satoshis(value, decimals):
     return int(float(value) * math.pow(10, decimals))

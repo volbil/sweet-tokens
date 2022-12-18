@@ -27,9 +27,7 @@ def create_app() -> FastAPI:
     app.include_router(message)
 
     register_tortoise(
-        app,
-        db_url=config.tortoise["db_url"],
-        modules=config.tortoise["modules"],
+        app, config=config.tortoise,
         add_exception_handlers=True,
         generate_schemas=True,
     )

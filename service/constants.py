@@ -1,6 +1,8 @@
 # Max encode value
 MAX_VALUE = 10000000000000000000
 
+NETWORK_DECIMALS = 4
+
 # Payload categories
 CREATE = 1
 ISSUE = 2

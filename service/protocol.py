@@ -105,6 +105,7 @@ class Protocol(object):
             if category == constants.CREATE:
                 payload["amount"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
+                payload["decimals"] = payload.pop("d")
                 payload["reissuable"] = payload.pop("r")
 
                 CreateValidation(**payload)
