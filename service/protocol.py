@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
-from .constants import MAX_VALUE
+from .consensus import MAX_VALUE
 from . import constants
 import msgpack
 
@@ -9,17 +9,17 @@ class CategoryValidation(BaseModel):
 
 class CreateValidation(CategoryValidation):
     ticker: str = Field(min_length=3, max_length=8)
-    amount: int = Field(ge=1, le=MAX_VALUE)
+    value: int = Field(ge=1, le=MAX_VALUE)
     decimals: int = Field(ge=1, le=8)
     reissuable: bool
 
 class IssueValidation(CategoryValidation):
     ticker: str = Field(min_length=3, max_length=8)
-    amount: int = Field(ge=1, le=MAX_VALUE)
+    value: int = Field(ge=1, le=MAX_VALUE)
 
 class TransferValidation(CategoryValidation):
     ticker: str = Field(min_length=3, max_length=8)
-    amount: int = Field(ge=1, le=MAX_VALUE)
+    value: int = Field(ge=1, le=MAX_VALUE)
 
 class Protocol(object):
     @classmethod
@@ -40,7 +40,7 @@ class Protocol(object):
                     "r": data.reissuable,
                     "d": data.decimals,
                     "c": data.category,
-                    "a": data.amount,
+                    "a": data.value,
                     "t": data.ticker
                 }
 
@@ -48,7 +48,7 @@ class Protocol(object):
                 data = IssueValidation(**payload)
                 payload = {
                     "c": data.category,
-                    "a": data.amount,
+                    "a": data.value,
                     "t": data.ticker
                 }
 
@@ -56,7 +56,7 @@ class Protocol(object):
                 data = TransferValidation(**payload)
                 payload = {
                     "c": data.category,
-                    "a": data.amount,
+                    "a": data.value,
                     "t": data.ticker
                 }
 
@@ -103,7 +103,7 @@ class Protocol(object):
         # Validate the rest of the payload
         try:
             if category == constants.CREATE:
-                payload["amount"] = payload.pop("a")
+                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
                 payload["decimals"] = payload.pop("d")
                 payload["reissuable"] = payload.pop("r")
@@ -111,13 +111,13 @@ class Protocol(object):
                 CreateValidation(**payload)
 
             elif category == constants.ISSUE:
-                payload["amount"] = payload.pop("a")
+                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
 
                 IssueValidation(**payload)
 
             elif category == constants.TRANSFER:
-                payload["amount"] = payload.pop("a")
+                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
 
                 TransferValidation(**payload)

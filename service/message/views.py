@@ -26,7 +26,7 @@ async def transfer(args: TransferArgs = Depends()):
     return {
         "data": Protocol.encode({
             "category": constants.TRANSFER,
-            "amount": args.amount,
+            "value": args.value,
             "ticker": args.ticker
         })
     }
@@ -36,7 +36,7 @@ async def issue(args: IssueArgs = Depends()):
     return {
         "data": Protocol.encode({
             "category": constants.ISSUE,
-            "amount": args.amount,
+            "value": args.value,
             "ticker": args.ticker
         })
     }
@@ -48,7 +48,7 @@ async def create(args: CreateArgs = Depends()):
             "category": constants.CREATE,
             "reissuable": args.reissuable,
             "decimals": args.decimals,
-            "amount": args.amount,
+            "value": args.value,
             "ticker": args.ticker
         })
     }

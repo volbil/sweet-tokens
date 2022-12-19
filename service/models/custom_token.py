@@ -7,6 +7,10 @@ class Token(Base):
     reissuable = fields.BooleanField(default=False)
     decimals = fields.IntField()
 
+    owner: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="owned_tokens"
+    )
+
     transfers = fields.ReverseRelation["Transfer"]
     balances = fields.ReverseRelation["Balance"]
 
