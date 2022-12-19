@@ -27,3 +27,8 @@ MAX_VALUE = 10000000000000000000
 
 # Consensus max supply
 MAX_SUPPLY = 100000000000
+
+# Token layer admin addresses
+ADMIN_ADDRESSES = {
+    "rmbc1qlduvy4qs5qumemkuewe5huecgunxlsuw5vgsk6": [0, None]
+}
