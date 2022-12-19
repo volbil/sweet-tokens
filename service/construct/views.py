@@ -55,7 +55,11 @@ async def construct(args: BuildArgs):
         if input_amount >= required_amount:
             break
 
-    change = input_amount - required_amount
+    change = input_amount - required_amount - utils.satoshis(args.fee, 4)
+
+    if args.receive_address:
+        change -= utils.satoshis(args.marker, 4)
+
     outputs[args.send_address] = utils.amount(change, 4)
     outputs["data"] = args.payload
 
