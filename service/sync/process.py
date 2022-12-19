@@ -101,49 +101,22 @@ async def process_decoded(
     valid = True
 
     if category == constants.CREATE:
-        # Check if transaction has been sent from admin address
-        valid = consensus.check_admin(send_address, block.height)
-
-        # Check value for new token
-        valid = consensus.check_value(decoded["value"])
-
-        # Check decimal points for new token
-        valid = consensus.check_decimals(decoded["decimals"])
-
-        # Check if new token supply within constraints
-        valid = await consensus.check_supply_create(
-            decoded["value"], decoded["decimals"]
-        )
-
-        # Check ticker length and if it's available
-        valid = await consensus.check_ticker(decoded["ticker"])
-
-        if valid:
-            await process_create(decoded, send_address, block, txid)
+        # Validate create payload
+        if await consensus.validate_create(
+            decoded, send_address, block.height
+        ):
+            await process_create(
+                decoded, send_address, block, txid
+            )
 
     if category == constants.ISSUE:
-        # Check if transaction has been sent from admin address
-        valid = consensus.check_admin(send_address, block.height)
-
-        # Check value for new tokens issued
-        valid = consensus.check_value(decoded["value"])
-
-        # Check if token reissuable
-        valid = await consensus.check_reissuable(decoded["ticker"])
-
-        # Check if token exists
-        valid = await consensus.check_token(decoded["ticker"])
-
-        # Check if token owner
-        valid = await consensus.check_owner(decoded["ticker"], send_address)
-
-        # Check if issued amount within supply constraints
-        valid = await consensus.check_supply_issue(
-            decoded["ticker"], decoded["value"]
-        )
-
-        if valid:
-            await process_issue(decoded, send_address, block, txid)
+        # Validate issue payload
+        if await consensus.validate_issue(
+            decoded, send_address, block.height
+        ):
+            await process_issue(
+                decoded, send_address, block, txid
+            )
 
     return valid
 

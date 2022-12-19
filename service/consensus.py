@@ -16,6 +16,49 @@ MAX_VALUE = 10000000000000000000
 
 MAX_SUPPLY = 100000000000
 
+async def validate_create(decoded, send_address, height):
+    # Check if transaction has been sent from admin address
+    valid = check_admin(send_address, height)
+
+    # Check value for new token
+    valid = check_value(decoded["value"])
+
+    # Check decimal points for new token
+    valid = check_decimals(decoded["decimals"])
+
+    # Check if new token supply within constraints
+    valid = await check_supply_create(
+        decoded["value"], decoded["decimals"]
+    )
+
+    # Check ticker length and if it's available
+    valid = await check_ticker(decoded["ticker"])
+
+    return valid
+
+async def validate_issue(decoded, send_address, height):
+    # Check if transaction has been sent from admin address
+    valid = check_admin(send_address, height)
+
+    # Check value for new tokens issued
+    valid = check_value(decoded["value"])
+
+    # Check if token reissuable
+    valid = await check_reissuable(decoded["ticker"])
+
+    # Check if token exists
+    valid = await check_token(decoded["ticker"])
+
+    # Check if token owner
+    valid = await check_owner(decoded["ticker"], send_address)
+
+    # Check if issued amount within supply constraints
+    valid = await check_supply_issue(
+        decoded["ticker"], decoded["value"]
+    )
+
+    return valid
+
 def check_admin(send_address, height):
     if not send_address in ADMIN_ADDRESSES:
         return False
