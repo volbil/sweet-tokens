@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from ..consensus import MAX_VALUE
+from ..constants import MAX_VALUE
 
 class CreateArgs(BaseModel):
     ticker: str = Field(min_length=3, max_length=8)

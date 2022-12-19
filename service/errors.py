@@ -8,7 +8,10 @@ class ErrorResponse(BaseModel):
     code: str = Field(example="example_error")
 
 errors = {
-
+    "construct": {
+        "bad-address": ["Bad address", 400],
+        "failed": ["Failed to build transaction", 400],
+    }
 }
 
 class Abort(Exception):

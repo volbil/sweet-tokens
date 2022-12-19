@@ -22,8 +22,10 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RequestValidationError, errors.validation_handler)
     app.add_exception_handler(errors.Abort, errors.abort_handler)
 
+    from .construct import construct
     from .message import message
 
+    app.include_router(construct)
     app.include_router(message)
 
     register_tortoise(

@@ -1,6 +1,12 @@
 # Network decimals
 NETWORK_DECIMALS = 4
 
+# Transaction build default fee
+DEFAULT_FEE = 0.015
+
+# Transaction build default marker
+DEFAULT_MARKER = 0.1
+
 # Transfer categories
 CATEGORY_CREATE = 1
 CATEGORY_ISSUE = 2
