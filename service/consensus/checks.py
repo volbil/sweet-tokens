@@ -7,30 +7,35 @@ ADMIN_ADDRESSES = {
     "rmbc1qlduvy4qs5qumemkuewe5huecgunxlsuw5vgsk6": [0, None]
 }
 
-def admin(send_address, height):
-    if not send_address in ADMIN_ADDRESSES:
+def admin(send_address_label, height):
+    if not send_address_label in ADMIN_ADDRESSES:
+        log_message(f"Address {send_address_label} not in admin list")
         return False
 
-    if ADMIN_ADDRESSES[send_address][0] > height:
+    if ADMIN_ADDRESSES[send_address_label][0] > height:
+        log_message(f"Address {send_address_label} not yet admin")
         return False
 
     if ADMIN_ADDRESSES[
-        send_address
+        send_address_label
     ][1] and ADMIN_ADDRESSES[
-        send_address
+        send_address_label
     ][1] < height:
+        log_message(f"Address {send_address_label} not admin anymore")
         return False
 
     return True
 
 def value(value):
     if value < constants.MIN_VALUE or value > constants.MAX_VALUE:
+        log_message(f"Value {value} not met constraints")
         return False
 
     return True
 
 def decimals(decimals):
     if decimals < constants.MIN_DECIMALS or decimals > constants.MAX_DECIMALS:
+        log_message(f"Decimals {decimals} not met constraints")
         return False
 
     return True
@@ -41,68 +46,82 @@ async def ticker(ticker):
     ) < constants.MIN_TICKER_LENGTH or len(
         ticker
     ) > constants.MAX_TICKER_LENGTH:
+        log_message(f"Ticker {ticker} not met constraints")
         return False
 
     if await Token.filter(ticker=ticker).first():
+        log_message(f"Token with {ticker} already exists")
         return False
 
     return True
 
 async def token(ticker):
-    if await Token.filter(ticker=ticker).first():
-        return True
+    if not await Token.filter(ticker=ticker).first():
+        log_message(f"Token with {ticker} don't exists")
+        return False
 
-    return False
+    return True
 
-async def owner(ticker, owner_address=None):
+async def owner(ticker, owner_address):
     if not (token := await Token.filter(ticker=ticker).first()):
+        log_message(f"Token with {ticker} don't exists")
         return False
 
     owner = await token.owner
 
-    if owner.label == owner_address:
-        return True
+    if owner.label != owner_address:
+        log_message(f"Address {owner_address} is not owner of {ticker}")
+        return False
 
-    return False
+    return True
 
 async def reissuable(ticker):
     if not (token := await Token.filter(ticker=ticker).first()):
+        log_message(f"Token with {ticker} don't exists")
         return False
     
     return token.reissuable
 
 async def supply_create(value, decimals):
-    if utils.amount(value, decimals) > constants.MAX_SUPPLY:
+    value = utils.amount(value, decimals)
+    if value > constants.MAX_SUPPLY:
+        log_message(f"Supply {value} not met constraint")
         return False
 
     return True
 
 async def supply_issue(ticker, value):
     if not (token := await Token.filter(ticker=ticker).first()):
+        log_message(f"Token with {ticker} don't exists")
         return False
 
-    if float(token.supply) + utils.amount(
-        value, token.decimals
-    ) > constants.MAX_SUPPLY:
+    value = utils.amount(value, token.decimals)
+
+    if float(token.supply) + value > constants.MAX_SUPPLY:
+        log_message(f"Supply issue {value} not met constraint")
         return False
 
     return True
 
 async def balance(ticker, address_label, value):
     if not (token := await Token.filter(ticker=ticker).first()):
+        log_message(f"Token with {ticker} don't exists")
         return False
 
     if not (address := await Address.filter(label=address_label).first()):
+        log_message(f"Address {address_label} not found")
         return False
 
     if not (balance := await Balance.filter(
         address=address, token=token
     ).first()):
+        log_message(f"Can't find {ticker} balance for {address_label}")
         return False
 
-    amount = utils.amount(value, token.decimals)
+    value = utils.amount(value, token.decimals)
 
-    if float(balance.value) - amount < 0:
+    if float(balance.value) - value < 0:
+        log_message(f"Address {address_label} don't have {value} {ticker}")
         return False
 
     return True
