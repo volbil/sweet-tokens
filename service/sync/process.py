@@ -51,7 +51,7 @@ async def process_create(decoded, inputs, block, txid):
 
     await balance.save()
 
-    log_message(f"Created {value} {token.ticker} tokens")
+    log_message(f"Created {value} {token.ticker}")
 
 async def process_issue(decoded, inputs, block, txid):
     send_address = list(inputs)[0]
@@ -93,7 +93,7 @@ async def process_issue(decoded, inputs, block, txid):
     token.supply += transfer.value
     await token.save()
 
-    log_message(f"Issued {value} {token.ticker} tokens")
+    log_message(f"Issued {value} {token.ticker}")
 
 async def process_transfer(decoded, inputs, outputs, block, txid):
     send_address_label = list(inputs)[0]

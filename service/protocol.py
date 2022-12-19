@@ -1,6 +1,6 @@
-from .consensus.checks import MAX_VALUE
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
+from .constants import MAX_VALUE
 from . import constants
 import msgpack
 
