@@ -6,10 +6,11 @@ from service import constants
 import asyncio
 
 async def test():
+    RECEIVE_ADDRESS = "rmbc1q6dce9x36q0m6v23f9huqpc0vsnu0ujulc3wn4c"
     SEND_ADDRESS = "rmbc1qlduvy4qs5qumemkuewe5huecgunxlsuw5vgsk6"
     SEND_KEY = "cUgk364exd5bSCVc78df7HWjGZs6Vs9JK7teAA2RcSnmbB7q2Y4v"
 
-    MARKER = satoshis(0.0001, 4)
+    MARKER = satoshis(0.1, 4)
     TX_FEE = satoshis(0.015, 4)
 
     utxos = await make_request("getaddressutxos", [{
@@ -41,14 +42,26 @@ async def test():
     #     "ticker": "TEST"
     # })
 
+    # payload = Protocol.encode({
+    #     "category": constants.ISSUE,
+    #     "value": satoshis(1000000, 4),
+    #     "ticker": "TEST"
+    # })
+
     payload = Protocol.encode({
-        "category": constants.ISSUE,
+        "category": constants.TRANSFER,
         "value": satoshis(1000000, 4),
         "ticker": "TEST"
     })
 
+    # outputs = {
+    #     SEND_ADDRESS: amount(change, 4),
+    #     "data": payload
+    # }
+
     outputs = {
-        SEND_ADDRESS: amount(change, 4),
+        RECEIVE_ADDRESS: amount(MARKER, 4),
+        SEND_ADDRESS: amount(change - MARKER, 4),
         "data": payload
     }
 

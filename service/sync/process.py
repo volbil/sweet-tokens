@@ -8,7 +8,9 @@ from .. import constants
 from .. import consensus
 from .. import utils
 
-async def process_create(decoded, send_address, block, txid):
+async def process_create(decoded, inputs, block, txid):
+    send_address = list(inputs)[0]
+
     value = utils.amount(decoded["value"], decoded["decimals"])
 
     if not (address := await Address.filter(
@@ -35,8 +37,9 @@ async def process_create(decoded, send_address, block, txid):
         })
 
     transfer = await Transfer.create(**{
-        "category": constants.TRANSFER_CREATE,
+        "category": constants.CATEGORY_CREATE,
         "created": block.created,
+        "receiver": address,
         "value": value,
         "token": token,
         "block": block,
@@ -48,9 +51,11 @@ async def process_create(decoded, send_address, block, txid):
 
     await balance.save()
 
-    log_message(f"Created token {token.ticker}")
+    log_message(f"Created {value} {token.ticker} tokens")
 
-async def process_issue(decoded, send_address, block, txid):
+async def process_issue(decoded, inputs, block, txid):
+    send_address = list(inputs)[0]
+
     token = await Token.filter(ticker=decoded["ticker"]).first()
 
     value = utils.amount(decoded["value"], token.decimals)
@@ -71,8 +76,9 @@ async def process_issue(decoded, send_address, block, txid):
         })
 
     transfer = await Transfer.create(**{
-        "category": constants.TRANSFER_ISSUE,
+        "category": constants.CATEGORY_ISSUE,
         "created": block.created,
+        "receiver": address,
         "value": value,
         "token": token,
         "block": block,
@@ -87,35 +93,90 @@ async def process_issue(decoded, send_address, block, txid):
     token.supply += transfer.value
     await token.save()
 
-    log_message(f"Increased supply for {token.ticker}")
+    log_message(f"Issued {value} {token.ticker} tokens")
+
+async def process_transfer(decoded, inputs, outputs, block, txid):
+    send_address_label = list(inputs)[0]
+    outputs.pop(send_address_label)
+    receive_address_label = list(outputs)[0]
+
+    token = await Token.filter(ticker=decoded["ticker"]).first()
+    value = utils.amount(decoded["value"], token.decimals)
+
+    send_address = await Address.filter(label=send_address_label).first()
+    send_balance = await Balance.filter(
+        address=send_address, token=token
+    ).first()
+
+    if not (receive_address := await Address.filter(
+        label=receive_address_label
+    ).first()):
+        receive_address = await Address.create(**{
+            "label": receive_address_label
+        })
+
+    if not (receive_balance := await Balance.filter(
+        address=receive_address, token=token
+    ).first()):
+        receive_balance = await Balance.create(**{
+            "address": receive_address,
+            "token": token
+        })
+
+    transfer = await Transfer.create(**{
+        "category": constants.CATEGORY_TRANSFER,
+        "receiver": receive_address,
+        "created": block.created,
+        "send": send_address,
+        "value": value,
+        "token": token,
+        "block": block,
+        "txid": txid
+    })
+
+    send_balance.value -= transfer.value
+    send_balance.sent += transfer.value
+
+    receive_balance.received += transfer.value
+    receive_balance.value += transfer.value
+
+    await receive_balance.save()
+    await send_balance.save()
+
+    log_message(f"Transfered {value} {token.ticker}")
 
 @atomic()
 async def process_decoded(
     decoded, inputs, outputs, block, txid
 ):
-    if len(inputs) != 1:
-        return False
-
-    send_address = list(inputs)[0]
     category = decoded["category"]
     valid = True
 
     if category == constants.CREATE:
         # Validate create payload
         if await consensus.validate_create(
-            decoded, send_address, block.height
+            decoded, inputs, block.height
         ):
             await process_create(
-                decoded, send_address, block, txid
+                decoded, inputs, block, txid
             )
 
     if category == constants.ISSUE:
         # Validate issue payload
         if await consensus.validate_issue(
-            decoded, send_address, block.height
+            decoded, inputs, block.height
         ):
             await process_issue(
-                decoded, send_address, block, txid
+                decoded, inputs, block, txid
+            )
+
+    if category == constants.TRANSFER:
+        # Validate issue payload
+        if await consensus.validate_transfer(
+            decoded, inputs, outputs
+        ):
+            await process_transfer(
+                decoded, inputs, outputs, block, txid
             )
 
     return valid
