@@ -8,7 +8,8 @@ class Token(Base):
     decimals = fields.IntField()
 
     owner: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="owned_tokens"
+        "models.Address", related_name="owned_tokens",
+        on_delete=fields.CASCADE
     )
 
     transfers = fields.ReverseRelation["Transfer"]

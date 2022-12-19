@@ -8,11 +8,13 @@ class Transfer(Base):
     created = NativeDatetimeField()
 
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
-        "models.Block", related_name="transfers"
+        "models.Block", related_name="transfers",
+        on_delete=fields.CASCADE
     )
 
     token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-        "models.Token", related_name="transfers"
+        "models.Token", related_name="transfers",
+        on_delete=fields.CASCADE
     )
 
     sender: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(

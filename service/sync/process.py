@@ -4,7 +4,6 @@ from ..models import Balance, Transfer
 from .parse import parse_transaction
 from ..protocol import Protocol
 from ..utils import log_message
-from datetime import datetime
 from .. import constants
 from .. import consensus
 from .. import utils

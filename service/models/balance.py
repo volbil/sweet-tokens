@@ -7,11 +7,13 @@ class Balance(Base):
     sent = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
 
     address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="balances"
+        "models.Address", related_name="balances",
+        on_delete=fields.CASCADE
     )
 
     token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-        "models.Token", related_name="balances"
+        "models.Token", related_name="balances",
+        on_delete=fields.CASCADE
     )
 
     class Meta:
