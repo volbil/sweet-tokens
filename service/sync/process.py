@@ -8,6 +8,87 @@ from .. import constants
 from .. import consensus
 from .. import utils
 
+async def process_create(decoded, send_address, block, txid):
+    value = utils.amount(decoded["value"], decoded["decimals"])
+
+    if not (address := await Address.filter(
+        label=send_address
+    ).first()):
+        address = await Address.create(**{
+            "label": send_address
+        })
+
+    token = await Token.create(**{
+        "reissuable": decoded["reissuable"],
+        "decimals": decoded["decimals"],
+        "ticker": decoded["ticker"],
+        "owner": address,
+        "supply": value
+    })
+
+    if not (balance := await Balance.filter(
+        address=address, token=token
+    ).first()):
+        balance = await Balance.create(**{
+            "address": address,
+            "token": token
+        })
+
+    transfer = await Transfer.create(**{
+        "category": constants.TRANSFER_CREATE,
+        "created": block.created,
+        "value": value,
+        "token": token,
+        "block": block,
+        "txid": txid
+    })
+
+    balance.received += transfer.value
+    balance.value += transfer.value
+
+    await balance.save()
+
+    log_message(f"Created token {token.ticker}")
+
+async def process_issue(decoded, send_address, block, txid):
+    token = await Token.filter(ticker=decoded["ticker"]).first()
+
+    value = utils.amount(decoded["value"], token.decimals)
+
+    if not (address := await Address.filter(
+        label=send_address
+    ).first()):
+        address = await Address.create(**{
+            "label": send_address
+        })
+
+    if not (balance := await Balance.filter(
+        address=address, token=token
+    ).first()):
+        balance = await Balance.create(**{
+            "address": address,
+            "token": token
+        })
+
+    transfer = await Transfer.create(**{
+        "category": constants.TRANSFER_ISSUE,
+        "created": block.created,
+        "value": value,
+        "token": token,
+        "block": block,
+        "txid": txid
+    })
+
+    balance.received += transfer.value
+    balance.value += transfer.value
+
+    await balance.save()
+
+    token.supply += transfer.value
+    await token.save()
+
+    log_message(f"Increased supply for {token.ticker}")
+
 @atomic()
 async def process_decoded(
     decoded, inputs, outputs, block, txid
@@ -21,58 +102,48 @@ async def process_decoded(
 
     if category == constants.CREATE:
         # Check if transaction has been sent from admin address
-        valid = await consensus.check_admin(send_address, block.height)
+        valid = consensus.check_admin(send_address, block.height)
 
         # Check value for new token
-        valid = await consensus.check_value(decoded["value"])
+        valid = consensus.check_value(decoded["value"])
 
         # Check decimal points for new token
-        valid = await consensus.check_decimals(decoded["decimals"])
+        valid = consensus.check_decimals(decoded["decimals"])
+
+        # Check if new token supply within constraints
+        valid = await consensus.check_supply_create(
+            decoded["value"], decoded["decimals"]
+        )
 
         # Check ticker length and if it's available
         valid = await consensus.check_ticker(decoded["ticker"])
 
         if valid:
-            value = utils.amount(decoded["value"], decoded["decimals"])
+            await process_create(decoded, send_address, block, txid)
 
-            if not (address := await Address.filter(
-                label=send_address
-            ).first()):
-                address = await Address.create(**{
-                    "label": send_address
-                })
+    if category == constants.ISSUE:
+        # Check if transaction has been sent from admin address
+        valid = consensus.check_admin(send_address, block.height)
 
-            token = await Token.create(**{
-                "reissuable": decoded["reissuable"],
-                "decimals": decoded["decimals"],
-                "ticker": decoded["ticker"],
-                "owner": address,
-                "supply": value
-            })
+        # Check value for new tokens issued
+        valid = consensus.check_value(decoded["value"])
 
-            if not (balance := await Balance.filter(
-                address=address, token=token
-            ).first()):
-                balance = await Balance.create(**{
-                    "address": address,
-                    "token": token
-                })
+        # Check if token reissuable
+        valid = await consensus.check_reissuable(decoded["ticker"])
 
-            transfer = await Transfer.create(**{
-                "category": constants.TRANSFER_CREATE,
-                "created": block.created,
-                "value": value,
-                "token": token,
-                "block": block,
-                "txid": txid
-            })
+        # Check if token exists
+        valid = await consensus.check_token(decoded["ticker"])
 
-            balance.received += transfer.value
-            balance.value += transfer.value
+        # Check if token owner
+        valid = await consensus.check_owner(decoded["ticker"], send_address)
 
-            await balance.save()
+        # Check if issued amount within supply constraints
+        valid = await consensus.check_supply_issue(
+            decoded["ticker"], decoded["value"]
+        )
 
-            log_message(f"Created token {token.ticker}")
+        if valid:
+            await process_issue(decoded, send_address, block, txid)
 
     return valid
 

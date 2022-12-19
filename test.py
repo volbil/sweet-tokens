@@ -33,11 +33,17 @@ async def test():
 
     change = input_amount - required_amount
 
+    # payload = Protocol.encode({
+    #     "category": constants.CREATE,
+    #     "reissuable": True,
+    #     "decimals": 4,
+    #     "value": satoshis(1000000, 4),
+    #     "ticker": "TEST"
+    # })
+
     payload = Protocol.encode({
-        "category": constants.CREATE,
-        "reissuable": True,
-        "decimals": 4,
-        "amount": satoshis(1000000, 4),
+        "category": constants.ISSUE,
+        "value": satoshis(1000000, 4),
         "ticker": "TEST"
     })
 
