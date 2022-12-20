@@ -108,6 +108,10 @@ async def balance(ticker, address_label, value):
         log_message(f"Address {address_label} not found")
         return False
 
+    if address.banned:
+        log_message(f"Address {address_label} banned")
+        return False
+
     if not (balance := await Balance.filter(
         address=address, token=token
     ).first()):

@@ -1,4 +1,5 @@
 from . import checks
+import copy
 
 async def validate_create(decoded, inputs, height):
     if len(inputs) != 1:
@@ -83,6 +84,30 @@ async def validate_transfer(decoded, inputs, outputs):
     if not await checks.balance(
         decoded["ticker"], send_address, decoded["value"]
     ):
+        return False
+
+    return True
+
+async def validate_admin(inputs, outputs, height):
+    if len(inputs) != 1:
+        return False
+
+    if len(outputs) != 2:
+        return False
+
+    send_address = list(inputs)[0]
+
+    outputs_shallow = copy.copy(outputs)
+    outputs_shallow.pop(send_address)
+
+    receive_address = list(outputs_shallow)[0]
+
+    # Check if transaction has been sent from admin address
+    if not checks.admin(send_address, height):
+        return False
+
+    # Make sure we don't ban admin address
+    if checks.admin(receive_address, height):
         return False
 
     return True

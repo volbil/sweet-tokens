@@ -2,9 +2,9 @@ from .base import Base, NativeDatetimeField
 from tortoise import fields
 
 class Transfer(Base):
+    txid = fields.CharField(index=True, unique=True, max_length=64)
     value = fields.DecimalField(max_digits=28, decimal_places=8)
     category = fields.CharField(index=True, max_length=32)
-    txid = fields.CharField(unique=True, max_length=64)
     created = NativeDatetimeField()
 
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(

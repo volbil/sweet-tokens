@@ -10,5 +10,11 @@ class Address(Base):
     owned_tokens = fields.ReverseRelation["Token"]
     balances = fields.ReverseRelation["Balance"]
 
+    address_unban = fields.ReverseRelation["Unban"]
+    admin_unban = fields.ReverseRelation["UnBan"]
+
+    address_ban = fields.ReverseRelation["Ban"]
+    admin_ban = fields.ReverseRelation["Ban"]
+
     class Meta:
         table = "service_addresses"

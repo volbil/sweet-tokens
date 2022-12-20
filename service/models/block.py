@@ -7,6 +7,8 @@ class Block(Base):
     height = fields.IntField()
 
     transfers = fields.ReverseRelation["Transfer"]
+    unbans = fields.ReverseRelation["Unban"]
+    bans = fields.ReverseRelation["Ban"]
 
     class Meta:
         table = "service_blocks"

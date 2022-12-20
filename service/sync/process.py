@@ -3,6 +3,7 @@ from tortoise.transactions import atomic
 from ..models import Balance, Transfer
 from .parse import parse_transaction
 from ..protocol import Protocol
+from ..models import Ban, Unban
 from ..utils import log_message
 from .. import constants
 from .. import consensus
@@ -145,6 +146,64 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
 
     log_message(f"Transfered {value} {token.ticker}")
 
+async def process_ban(inputs, outputs, block, txid):
+    send_address_label = list(inputs)[0]
+    outputs.pop(send_address_label)
+    receive_address_label = list(outputs)[0]
+
+    send_address = await Address.filter(label=send_address_label).first()
+
+    if not (receive_address := await Address.filter(
+        label=receive_address_label
+    ).first()):
+        receive_address = await Address.create(**{
+            "label": receive_address_label
+        })
+
+    await Ban.create(**{
+        "address": receive_address,
+        "admin": send_address,
+        "block": block,
+        "txid": txid
+    })
+
+    receive_address.banned = True
+    await receive_address.save()
+
+    admin = send_address_label
+    banned = send_address_label
+
+    log_message(f"Address {banned} banned by {admin}")
+
+async def process_unban(inputs, outputs, block, txid):
+    send_address_label = list(inputs)[0]
+    outputs.pop(send_address_label)
+    receive_address_label = list(outputs)[0]
+
+    send_address = await Address.filter(label=send_address_label).first()
+
+    if not (receive_address := await Address.filter(
+        label=receive_address_label
+    ).first()):
+        receive_address = await Address.create(**{
+            "label": receive_address_label
+        })
+
+    await Unban.create(**{
+        "address": receive_address,
+        "admin": send_address,
+        "block": block,
+        "txid": txid
+    })
+
+    receive_address.banned = False
+    await receive_address.save()
+
+    admin = send_address_label
+    banned = send_address_label
+
+    log_message(f"Address {banned} unbanned by {admin}")
+
 @atomic()
 async def process_decoded(
     decoded, inputs, outputs, block, txid
@@ -177,6 +236,18 @@ async def process_decoded(
         ):
             await process_transfer(
                 decoded, inputs, outputs, block, txid
+            )
+
+    if category == constants.BAN:
+        if await consensus.validate_admin(inputs, outputs, block.height):
+            await process_ban(
+                inputs, outputs, block, txid
+            )
+
+    if category == constants.UNBAN:
+        if await consensus.validate_admin(inputs, outputs, block.height):
+            await process_unban(
+                inputs, outputs, block, txid
             )
 
     return valid
@@ -212,7 +283,7 @@ async def process_block(data):
 
         for output in tx_data["outputs"]:
             if output["script_type"] == "nulldata":
-                payload = output["script_asm"].split(" ")[1]
+                payload = output["script_hex"][4:]
                 decoded = Protocol.decode(payload)
 
             if output["address"]:
