@@ -2,6 +2,32 @@ from ..models import Token, Balance, Address
 from ..utils import log_message
 from .. import constants
 from .. import utils
+import copy
+
+def inputs_len(inputs):
+    if len(inputs) != 1:
+        log_message("Inputs length missmatch")
+        return False
+
+    return True
+
+def outputs_len(inputs):
+    if len(inputs) != 2:
+        log_message("Outputs length missmatch")
+        return False
+
+    return True
+
+def receiver(inputs, outputs):
+    send_address = list(inputs)[0]
+    outputs_shallow = copy.copy(outputs)
+    outputs_shallow.pop(send_address)
+
+    if len(outputs_shallow) != 1:
+        log_message("More than one receiver")
+        return False
+
+    return True
 
 def admin(send_address_label, height):
     if not send_address_label in constants.ADMIN_ADDRESSES:

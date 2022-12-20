@@ -2,7 +2,7 @@ from . import checks
 import copy
 
 async def validate_create(decoded, inputs, height):
-    if len(inputs) != 1:
+    if not checks.inputs_len(inputs):
         return False
 
     send_address = list(inputs)[0]
@@ -32,7 +32,7 @@ async def validate_create(decoded, inputs, height):
     return True
 
 async def validate_issue(decoded, inputs, height):
-    if len(inputs) != 1:
+    if not checks.inputs_len(inputs):
         return False
 
     send_address = list(inputs)[0]
@@ -64,10 +64,13 @@ async def validate_issue(decoded, inputs, height):
     return True
 
 async def validate_transfer(decoded, inputs, outputs):
-    if len(inputs) != 1:
+    if not checks.inputs_len(inputs):
         return False
 
-    if len(outputs) != 2:
+    if not checks.outputs_len(outputs):
+        return False
+
+    if not checks.receiver(inputs, outputs):
         return False
 
     send_address = list(inputs)[0]
@@ -89,10 +92,13 @@ async def validate_transfer(decoded, inputs, outputs):
     return True
 
 async def validate_admin(inputs, outputs, height):
-    if len(inputs) != 1:
+    if not checks.inputs_len(inputs):
         return False
 
-    if len(outputs) != 2:
+    if not checks.outputs_len(outputs):
+        return False
+
+    if not checks.receiver(inputs, outputs):
         return False
 
     send_address = list(inputs)[0]
