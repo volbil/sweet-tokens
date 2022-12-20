@@ -1,6 +1,6 @@
-from .process import process_block, process_reorg
+from ..process import process_block, process_reorg
 from ..utils import make_request, log_message
-from .parse import parse_block
+from ..parse import parse_block
 from tortoise import Tortoise
 from ..models import Block
 import config

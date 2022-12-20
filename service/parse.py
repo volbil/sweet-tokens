@@ -1,4 +1,4 @@
-from ..utils import make_request
+from .utils import make_request
 from datetime import datetime
 
 async def parse_transaction(txid, height=None, tx_index=None):
