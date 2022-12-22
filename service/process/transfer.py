@@ -36,7 +36,7 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
         "category": constants.CATEGORY_TRANSFER,
         "receiver": receive_address,
         "created": block.created,
-        "send": send_address,
+        "sender": send_address,
         "value": value,
         "token": token,
         "block": block,

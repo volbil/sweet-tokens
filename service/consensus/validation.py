@@ -91,7 +91,7 @@ async def validate_transfer(decoded, inputs, outputs):
 
     return True
 
-async def validate_admin(inputs, outputs, height):
+async def validate_admin(inputs, outputs, height, action_ban):
     if not checks.inputs_len(inputs):
         return False
 
@@ -114,6 +114,10 @@ async def validate_admin(inputs, outputs, height):
 
     # Make sure we don't ban admin address
     if checks.admin(receive_address, height):
+        return False
+
+    # Don't ban/unban if we don't need to
+    if await checks.banned(receive_address) == action_ban:
         return False
 
     return True

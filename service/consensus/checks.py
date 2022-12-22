@@ -31,7 +31,6 @@ def receiver(inputs, outputs):
 
 def admin(send_address_label, height):
     if not send_address_label in constants.ADMIN_ADDRESSES:
-        log_message(f"Address {send_address_label} not in admin list")
         return False
 
     if constants.ADMIN_ADDRESSES[send_address_label][0] > height:
@@ -151,3 +150,10 @@ async def balance(ticker, address_label, value):
         return False
 
     return True
+
+async def banned(address_label):
+    if not (address := await Address.filter(label=address_label).first()):
+        log_message(f"Address {address_label} not found")
+        return False
+
+    return address.banned

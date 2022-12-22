@@ -8,9 +8,9 @@ DEFAULT_FEE = 0.015
 DEFAULT_MARKER = 0.1
 
 # Transfer categories
-CATEGORY_CREATE = 1
-CATEGORY_ISSUE = 2
-CATEGORY_TRANSFER = 3
+CATEGORY_CREATE = "create"
+CATEGORY_ISSUE = "issue"
+CATEGORY_TRANSFER = "transfer"
 
 # Payload categories
 CREATE = 1

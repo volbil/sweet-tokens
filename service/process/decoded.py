@@ -42,13 +42,13 @@ async def process_decoded(
             )
 
     if category == constants.BAN:
-        if await consensus.validate_admin(inputs, outputs, block.height):
+        if await consensus.validate_admin(inputs, outputs, block.height, True):
             await process_ban(
                 inputs, outputs, block, txid
             )
 
     if category == constants.UNBAN:
-        if await consensus.validate_admin(inputs, outputs, block.height):
+        if await consensus.validate_admin(inputs, outputs, block.height, False):
             await process_unban(
                 inputs, outputs, block, txid
             )
