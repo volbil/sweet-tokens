@@ -1,7 +1,12 @@
 # Token layer genesis block
 GENESIS = {
-    "hash": "7a374ce1bc57589bf28331616b28e16438381f04ac6a233384e3485ff4fd7c28",
-    "height": 100
+    "hash": "301e5324cc205c4d10e5b4cd9222231e0e0cdc1e8bdcd543985138d2c23b50c6",
+    "height": 1670859
+}
+
+# Token layer admin addresses
+ADMIN_ADDRESSES = {
+    "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1670859, None]
 }
 
 # Network decimals
@@ -14,9 +19,9 @@ DEFAULT_FEE = 0.015
 DEFAULT_MARKER = 0.1
 
 # Transfer categories
+CATEGORY_TRANSFER = "transfer"
 CATEGORY_CREATE = "create"
 CATEGORY_ISSUE = "issue"
-CATEGORY_TRANSFER = "transfer"
 
 # Payload categories
 CREATE = 1
@@ -39,8 +44,3 @@ MAX_VALUE = 10000000000000000000
 
 # Consensus max supply
 MAX_SUPPLY = 100000000000
-
-# Token layer admin addresses
-ADMIN_ADDRESSES = {
-    "rmbc1qlduvy4qs5qumemkuewe5huecgunxlsuw5vgsk6": [0, None]
-}
