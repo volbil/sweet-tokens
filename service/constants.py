@@ -1,3 +1,9 @@
+# Token layer genesis block
+GENESIS = {
+    "hash": "7a374ce1bc57589bf28331616b28e16438381f04ac6a233384e3485ff4fd7c28",
+    "height": 100
+}
+
 # Network decimals
 NETWORK_DECIMALS = 4
 

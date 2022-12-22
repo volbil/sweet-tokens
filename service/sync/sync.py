@@ -3,6 +3,7 @@ from ..utils import make_request, log_message
 from ..parse import parse_block
 from tortoise import Tortoise
 from ..models import Block
+from .. import constants
 import config
 
 async def sync_chain():
@@ -13,7 +14,12 @@ async def sync_chain():
     if not (await Block.filter().order_by("-height").limit(1).first()):
         log_message("Adding genesis block to db")
 
-        block_data = await parse_block(0)
+        block_data = await parse_block(constants.GENESIS["height"])
+
+        if block_data["block"]["hash"] != constants.GENESIS["hash"]:
+            log_message("Genesis hash missmatch")
+            raise
+
         await process_block(block_data)
 
     latest = await Block.filter().order_by("-height").limit(1).first()
