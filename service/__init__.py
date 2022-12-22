@@ -6,6 +6,8 @@ from fastapi import FastAPI
 from . import errors
 import config
 
+version = "0.1"
+
 def create_app() -> FastAPI:
     fu.validation_error_response_definition = errors.ErrorResponse.schema()
 
@@ -27,6 +29,12 @@ def create_app() -> FastAPI:
 
     app.include_router(construct)
     app.include_router(message)
+
+    @app.get("/version")
+    async def layer_version():
+        return {
+            "version": version
+        }
 
     register_tortoise(
         app, config=config.tortoise,
