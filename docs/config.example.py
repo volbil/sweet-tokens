@@ -1,8 +1,15 @@
 tortoise = {
-    "db_url": "postgres://user:password@localhost:5432/username",
-    "modules": {"models": ["service.models"]}
+    "connections": {
+        "default": "postgres://admin:password@localhost:5432/database"
+    },
+    "apps": {
+        "models": {
+            "models": [
+                "service.models"
+            ],
+            "default_connection": "default",
+        }
+    },
 }
 
-admin_address = "ADMIN ADDRESS"
-
-node_endpoint = f"http://rpcuser:rpcpassword@localhost:18443"
+endpoint = "http://user:password@localhost:6503"

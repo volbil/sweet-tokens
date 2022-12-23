@@ -1,11 +1,11 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from service.sync import parse_blockchain
+from service.sync import sync_chain
 import asyncio
 
 def init_scheduler():
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(parse_blockchain, "interval", seconds=10)
+    scheduler.add_job(sync_chain, "interval", seconds=10)
     scheduler.start()
 
     try:
