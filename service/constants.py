@@ -1,7 +1,7 @@
 # Token layer genesis block
 GENESIS = {
-    "hash": "301e5324cc205c4d10e5b4cd9222231e0e0cdc1e8bdcd543985138d2c23b50c6",
-    "height": 1670859
+    "hash": "ac3be150a8dcbb2db6df462a9875c67f55e845de40cb49dc2e30f4dfab9b9115",
+    "height": 1672530
 }
 
 # Token layer admin addresses
