@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
-from .constants import MAX_VALUE
 from . import constants
 import msgpack
 
@@ -8,18 +7,33 @@ class CategoryValidation(BaseModel):
     category: int = Field(ge=1, le=5)
 
 class CreateValidation(CategoryValidation):
-    ticker: str = Field(min_length=3, max_length=8)
-    value: int = Field(ge=1, le=MAX_VALUE)
-    decimals: int = Field(ge=1, le=8)
+    decimals: int = Field(ge=constants.MIN_DECIMALS, le=constants.MAX_DECIMALS)
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
     reissuable: bool
 
+    ticker: str = Field(
+        min_length=constants.MIN_TICKER_LENGTH,
+        max_length=constants.MAX_TICKER_LENGTH,
+        regex=constants.TICKER_RE
+    )
+
 class IssueValidation(CategoryValidation):
-    ticker: str = Field(min_length=3, max_length=8)
-    value: int = Field(ge=1, le=MAX_VALUE)
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+
+    ticker: str = Field(
+        min_length=constants.MIN_TICKER_LENGTH,
+        max_length=constants.MAX_TICKER_LENGTH,
+        regex=constants.TICKER_RE
+    )
 
 class TransferValidation(CategoryValidation):
-    ticker: str = Field(min_length=3, max_length=8)
-    value: int = Field(ge=1, le=MAX_VALUE)
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+
+    ticker: str = Field(
+        min_length=constants.MIN_TICKER_LENGTH,
+        max_length=constants.MAX_TICKER_LENGTH,
+        regex=constants.TICKER_RE
+    )
 
 class Protocol(object):
     @classmethod
