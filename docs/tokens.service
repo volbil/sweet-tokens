@@ -1,0 +1,13 @@
+[Unit]
+Description=Token layer service
+After=network.target
+
+[Service]
+User=system_user
+Group=www-data
+WorkingDirectory=/home/system_user/tokens
+Environment="PATH=/home/system_user/tokens/venv/bin"
+ExecStart=/home/system_user/tokens/venv/bin/uvicorn app:app --reload --port=5858
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Token layer sync service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/home/system_user/tokens/venv/bin/python3 /home/system_user/tokens/sync.py
+WorkingDirectory=/home/system_user/tokens
+User=system_user
+
+[Install]
+WantedBy=multi-user.target

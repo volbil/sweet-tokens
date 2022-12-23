@@ -2,7 +2,20 @@
 
 Run:
 ```
-uvicorn app:app --reload --port=8888
+uvicorn app:app --reload --port=5858
 ```
 
-cUgk364exd5bSCVc78df7HWjGZs6Vs9JK7teAA2RcSnmbB7q2Y4v
+Sync service:
+
+```
+sudo nano /etc/systemd/system/sync-tokens.service
+sudo systemctl enable sync-tokens.service
+sudo systemctl start sync-tokens.service
+```
+
+Nginx:
+```
+sudo nano /etc/nginx/sites-available/tokens.mbc.wiki.conf
+sudo ln -s /etc/nginx/sites-available/tokens.mbc.wiki.conf /etc/nginx/sites-enabled
+sudo systemctl restart nginx
+```
