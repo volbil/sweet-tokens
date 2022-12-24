@@ -1,4 +1,5 @@
 from ..models import Block, Token
+from ..models import Transfer
 from fastapi import APIRouter
 from ..errors import Abort
 from fastapi import Query
@@ -123,10 +124,33 @@ async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
             "decimals": token.decimals,
             "value": transfer.value,
             "height": block.height,
+            "token": token.ticker,
             "txid": transfer.txid,
         })
 
     return {
         "pagination": pagination,
         "list": result
+    }
+
+@router.get("/transfer/{txid}")
+async def transfer(txid: str):
+    if not (transfer := await Transfer.filter(txid=txid).first()):
+        raise Abort("transfer", "not-found")
+
+    receiver = await transfer.receiver
+    sender = await transfer.sender
+    block = await transfer.block
+    token = await transfer.token
+
+    return {
+        "receiver": receiver.label if receiver else None,
+        "created": int(transfer.created.timestamp()),
+        "sender": sender.label if sender else None,
+        "category": transfer.category,
+        "decimals": token.decimals,
+        "value": transfer.value,
+        "height": block.height,
+        "token": token.ticker,
+        "txid": transfer.txid,
     }

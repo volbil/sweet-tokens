@@ -11,6 +11,12 @@ errors = {
     "construct": {
         "bad-address": ["Bad address", 400],
         "failed": ["Failed to build transaction", 400],
+    },
+    "token": {
+        "not-found": ["Token not found", 404]
+    },
+    "transfer": {
+        "not-found": ["Transfer not found", 404]
     }
 }
 
