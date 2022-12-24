@@ -1,5 +1,7 @@
 from ..models import Block, Token
 from fastapi import APIRouter
+from fastapi import Query
+from .. import utils
 
 router = APIRouter(prefix="/layer")
 
@@ -14,9 +16,15 @@ async def latest():
     }
 
 @router.get("/tokens")
-async def latest():
-    tokens = await Token.filter().order_by("ticker")
+async def tokens(page: int = Query(default=1, ge=1)):
+    total = await Token.filter().count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
     result = []
+
+    tokens = await Token.filter().order_by(
+        "created"
+    ).limit(limit).offset(offset)
 
     for token in tokens:
         balances = await token.balances.filter(value__gt=0).count()
@@ -33,4 +41,7 @@ async def latest():
             "balances": balances
         })
 
-    return result
+    return {
+        "pagination": pagination,
+        "list": result
+    }

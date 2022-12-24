@@ -5,6 +5,21 @@ import config
 import json
 import math
 
+# Helper function for toroise pagination
+def pagination(page, size=20):
+    limit = size
+    offset = (limit * (page)) - limit
+
+    return limit, offset, size
+
+# Helper function to make pagication dict for api
+def pagination_dict(total, page, size):
+    return {
+        "pages": math.ceil(total / size),
+        "total": total,
+        "page": page
+    }
+
 def log_message(message):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"{now} {message}")
