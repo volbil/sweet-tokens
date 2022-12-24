@@ -20,6 +20,7 @@ async def process_create(decoded, inputs, block, txid):
         "reissuable": decoded["reissuable"],
         "decimals": decoded["decimals"],
         "ticker": decoded["ticker"],
+        "created": block.created,
         "owner": address,
         "supply": value
     })

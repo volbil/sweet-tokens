@@ -15,7 +15,7 @@ async def latest():
 
 @router.get("/tokens")
 async def latest():
-    tokens = await Token.filter()
+    tokens = await Token.filter().order_by("ticker")
     result = []
 
     for token in tokens:

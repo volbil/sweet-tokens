@@ -1,10 +1,11 @@
+from .base import Base, NativeDatetimeField
 from tortoise import fields
-from .base import Base
 
 class Token(Base):
     supply = fields.DecimalField(max_digits=28, decimal_places=8)
     ticker = fields.CharField(unique=True, max_length=8)
     reissuable = fields.BooleanField(default=False)
+    created = NativeDatetimeField()
     decimals = fields.IntField()
 
     owner: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
