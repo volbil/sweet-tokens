@@ -48,7 +48,7 @@ async def tokens(page: int = Query(default=1, ge=1)):
     }
 
 @router.get("/token/{ticker}")
-async def tokens(ticker: str):
+async def token(ticker: str):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
@@ -64,4 +64,69 @@ async def tokens(ticker: str):
         "ticker": token.ticker,
         "owner": owner.label,
         "holders": holders
+    }
+
+@router.get("/token/{ticker}/holders")
+async def holders(ticker: str, page: int = Query(default=1, ge=1)):
+    if not (token := await Token.filter(ticker=ticker).first()):
+        raise Abort("token", "not-found")
+    
+    total = await token.balances.filter(value__gt=0).count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+    result = []
+
+    holders = await token.balances.filter(
+        value__gt=0
+    ).order_by("-value").limit(limit).offset(offset)
+
+    for balance in holders:
+        address = await balance.address
+
+        result.append({
+            "address": address.label,
+            "received": balance.received,
+            "value": balance.value,
+            "sent": balance.sent,
+            "decimals": token.decimals,
+        })
+
+    return {
+        "pagination": pagination,
+        "list": result
+    }
+
+@router.get("/token/{ticker}/transfers")
+async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
+    if not (token := await Token.filter(ticker=ticker).first()):
+        raise Abort("token", "not-found")
+    
+    total = await token.transfers.filter().count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+    result = []
+
+    transfers = await token.transfers.filter().order_by(
+        "-created"
+    ).limit(limit).offset(offset)
+
+    for transfer in transfers:
+        receiver = await transfer.receiver
+        sender = await transfer.sender
+        block = await transfer.block
+
+        result.append({
+            "receiver": receiver.label if receiver else None,
+            "created": int(transfer.created.timestamp()),
+            "sender": sender.label if sender else None,
+            "category": transfer.category,
+            "decimals": token.decimals,
+            "value": transfer.value,
+            "height": block.height,
+            "txid": transfer.txid,
+        })
+
+    return {
+        "pagination": pagination,
+        "list": result
     }
