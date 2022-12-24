@@ -1,5 +1,6 @@
 from ..models import Block, Token
 from fastapi import APIRouter
+from ..errors import Abort
 from fastapi import Query
 from .. import utils
 
@@ -27,7 +28,7 @@ async def tokens(page: int = Query(default=1, ge=1)):
     ).limit(limit).offset(offset)
 
     for token in tokens:
-        balances = await token.balances.filter(value__gt=0).count()
+        holders = await token.balances.filter(value__gt=0).count()
         transfers = await token.transfers.filter().count()
         owner = await token.owner
 
@@ -38,10 +39,29 @@ async def tokens(page: int = Query(default=1, ge=1)):
             "supply": token.supply,
             "ticker": token.ticker,
             "owner": owner.label,
-            "balances": balances
+            "holders": holders
         })
 
     return {
         "pagination": pagination,
         "list": result
+    }
+
+@router.get("/token/{ticker}")
+async def tokens(ticker: str):
+    if not (token := await Token.filter(ticker=ticker).first()):
+        raise Abort("token", "not-found")
+    
+    holders = await token.balances.filter(value__gt=0).count()
+    transfers = await token.transfers.filter().count()
+    owner = await token.owner
+
+    return {
+        "reissuable": token.reissuable,
+        "decimals": token.decimals,
+        "transfers": transfers,
+        "supply": token.supply,
+        "ticker": token.ticker,
+        "owner": owner.label,
+        "holders": holders
     }
