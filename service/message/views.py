@@ -5,7 +5,7 @@ from .args import CreateArgs
 from .args import IssueArgs
 from .. import constants
 
-router = APIRouter(prefix="/message")
+router = APIRouter(prefix="/message", tags=["Messages"])
 
 @router.get("/categories")
 async def categories():

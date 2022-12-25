@@ -1,3 +1,6 @@
+# System version
+VERSION = "0.1"
+
 # Token layer genesis block
 GENESIS = {
     "hash": "ac3be150a8dcbb2db6df462a9875c67f55e845de40cb49dc2e30f4dfab9b9115",

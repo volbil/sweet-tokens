@@ -5,7 +5,7 @@ from ..errors import Abort
 from fastapi import Query
 from .. import utils
 
-router = APIRouter(prefix="/layer")
+router = APIRouter(prefix="/layer", tags=["Layer"])
 
 @router.get("/latest")
 async def latest():

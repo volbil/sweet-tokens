@@ -5,7 +5,7 @@ from .. import utils
 
 router = APIRouter()
 
-@router.post("/construct")
+@router.post("/construct", tags=["Construct"])
 async def construct(args: BuildArgs):
     validate = await utils.make_request("validateaddress", [
         args.send_address
