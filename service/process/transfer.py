@@ -1,5 +1,5 @@
+from ..models import Token, Address, Index
 from ..models import Balance, Transfer
-from ..models import Token, Address
 from ..utils import log_message
 from .. import constants
 from .. import utils
@@ -51,5 +51,21 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
 
     await receive_balance.save()
     await send_balance.save()
+
+    await Index.create(**{
+        "category": constants.CATEGORY_TRANSFER,
+        "created": block.created,
+        "address": send_address,
+        "transfer": transfer,
+        "token": token
+    })
+
+    await Index.create(**{
+        "category": constants.CATEGORY_TRANSFER,
+        "address": receive_address,
+        "created": block.created,
+        "transfer": transfer,
+        "token": token
+    })
 
     log_message(f"Transfered {value} {token.ticker}")

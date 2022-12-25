@@ -1,5 +1,5 @@
+from ..models import Token, Address, Index
 from ..models import Balance, Transfer
-from ..models import Token, Address
 from ..utils import log_message
 from .. import constants
 from .. import utils
@@ -47,5 +47,13 @@ async def process_create(decoded, inputs, block, txid):
     balance.value += transfer.value
 
     await balance.save()
+
+    await Index.create(**{
+        "category": constants.CATEGORY_CREATE,
+        "created": block.created,
+        "transfer": transfer,
+        "address": address,
+        "token": token
+    })
 
     log_message(f"Created {value} {token.ticker}")

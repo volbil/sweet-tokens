@@ -1,5 +1,5 @@
+from ..models import Transfer, Address
 from ..models import Block, Token
-from ..models import Transfer
 from fastapi import APIRouter
 from ..errors import Abort
 from fastapi import Query
@@ -154,3 +154,23 @@ async def transfer(txid: str):
         "token": token.ticker,
         "txid": transfer.txid,
     }
+
+@router.get("/address/{label}")
+async def address(label: str):
+    result = []
+
+    if not (address := await Address.filter(label=label).first()):
+        return result
+
+    async for balance in address.balances:
+        token = await balance.token
+
+        result.append({
+            "address": address.label,
+            "received": balance.received,
+            "value": balance.value,
+            "sent": balance.sent,
+            "decimals": token.decimals,
+        })
+
+    return result

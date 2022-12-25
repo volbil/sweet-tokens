@@ -25,5 +25,7 @@ class Transfer(Base):
         "models.Address", related_name="transfers_receive", null=True
     )
 
+    index = fields.ReverseRelation["Index"]
+
     class Meta:
         table = "service_transfers"

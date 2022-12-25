@@ -1,5 +1,5 @@
+from ..models import Token, Address, Index
 from ..models import Balance, Transfer
-from ..models import Token, Address
 from ..utils import log_message
 from .. import constants
 from .. import utils
@@ -43,5 +43,13 @@ async def process_issue(decoded, inputs, block, txid):
 
     token.supply += transfer.value
     await token.save()
+
+    await Index.create(**{
+        "category": constants.CATEGORY_ISSUE,
+        "created": block.created,
+        "transfer": transfer,
+        "address": address,
+        "token": token
+    })
 
     log_message(f"Issued {value} {token.ticker}")
