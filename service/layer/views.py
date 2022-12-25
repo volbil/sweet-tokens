@@ -242,6 +242,7 @@ async def address_info(
             "decimals": token.decimals,
             "address": address.label,
             "transfers": transfers,
+            "ticker": token.ticker,
             "value": balance.value,
             "sent": balance.sent,
         })
