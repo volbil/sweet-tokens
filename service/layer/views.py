@@ -22,7 +22,9 @@ async def latest():
 @router.get(
     "/tokens", summary="Tokens list"
 )
-async def tokens(page: int = Query(default=1, ge=1)):
+async def tokens_list(
+    page: int = Query(default=1, ge=1)
+):
     total = await Token.filter().count()
     limit, offset, size = utils.pagination(page)
     pagination = utils.pagination_dict(total, page, size)
@@ -55,7 +57,9 @@ async def tokens(page: int = Query(default=1, ge=1)):
 @router.get(
     "/token/{ticker}", summary="Token info"
 )
-async def token(ticker: str):
+async def token_info(
+    ticker: str
+):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
@@ -76,7 +80,9 @@ async def token(ticker: str):
 @router.get(
     "/token/{ticker}/holders", summary="Token holders"
 )
-async def holders(ticker: str, page: int = Query(default=1, ge=1)):
+async def token_holders(
+    ticker: str, page: int = Query(default=1, ge=1)
+):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
@@ -108,7 +114,9 @@ async def holders(ticker: str, page: int = Query(default=1, ge=1)):
 @router.get(
     "/token/{ticker}/transfers", summary="Token transfers"
 )
-async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
+async def token_transfers(
+    ticker: str, page: int = Query(default=1, ge=1)
+):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
@@ -144,9 +152,49 @@ async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
     }
 
 @router.get(
+    "/transfers", summary="Transfers list"
+)
+async def transfers_list(
+    page: int = Query(default=1, ge=1)
+):
+    total = await Transfer.filter().count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+    result = []
+
+    transfers = await Transfer.filter().order_by(
+        "-created"
+    ).limit(limit).offset(offset)
+
+    for transfer in transfers:
+        receiver = await transfer.receiver
+        sender = await transfer.sender
+        token = await transfer.token
+        block = await transfer.block
+
+        result.append({
+            "receiver": receiver.label if receiver else None,
+            "created": int(transfer.created.timestamp()),
+            "sender": sender.label if sender else None,
+            "category": transfer.category,
+            "decimals": token.decimals,
+            "value": transfer.value,
+            "height": block.height,
+            "token": token.ticker,
+            "txid": transfer.txid,
+        })
+
+    return {
+        "pagination": pagination,
+        "list": result
+    }
+
+@router.get(
     "/transfer/{txid}", summary="Transfer info"
 )
-async def transfer(txid: str):
+async def transfer_info(
+    txid: str
+):
     if not (transfer := await Transfer.filter(txid=txid).first()):
         raise Abort("transfer", "not-found")
 
@@ -170,7 +218,9 @@ async def transfer(txid: str):
 @router.get(
     "/address/{label}", summary="Address stats and balances"
 )
-async def address(label: str):
+async def address_info(
+    label: str
+):
     result = []
 
     if not (address := await Address.filter(label=label).first()):
@@ -210,7 +260,9 @@ async def address(label: str):
 @router.get(
     "/address/{label}/transfers", summary="Address transfers"
 )
-async def address(label: str, page: int = Query(default=1, ge=1)):
+async def address_transfers(
+    label: str, page: int = Query(default=1, ge=1)
+):
     result = []
 
     if not (address := await Address.filter(label=label).first()):
@@ -255,7 +307,9 @@ async def address(label: str, page: int = Query(default=1, ge=1)):
 @router.get(
     "/address/{label}/transfers/{ticker}", summary="Address token transfers"
 )
-async def address(label: str, ticker: str, page: int = Query(default=1, ge=1)):
+async def address_token_transfers(
+    label: str, ticker: str, page: int = Query(default=1, ge=1)
+):
     result = []
 
     if not (address := await Address.filter(label=label).first()):
