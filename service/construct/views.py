@@ -3,9 +3,11 @@ from .args import BuildArgs
 from ..errors import Abort
 from .. import utils
 
-router = APIRouter()
+router = APIRouter(tags=["Construct"])
 
-@router.post("/construct", tags=["Construct"])
+@router.post(
+    "/construct", summary="Build token layer transaction"
+)
 async def construct(args: BuildArgs):
     validate = await utils.make_request("validateaddress", [
         args.send_address

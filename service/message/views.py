@@ -7,7 +7,9 @@ from .. import constants
 
 router = APIRouter(prefix="/message", tags=["Messages"])
 
-@router.get("/categories")
+@router.get(
+    "/categories", summary="Payload categories"
+)
 async def categories():
     return {
         "transfer": constants.TRANSFER,
@@ -17,11 +19,15 @@ async def categories():
         "ban": constants.BAN
     }
 
-@router.get("/decode")
+@router.get(
+    "/decode", summary="Decode payload"
+)
 async def decode(payload: str):
     return Protocol.decode(payload)
 
-@router.get("/transfer")
+@router.get(
+    "/transfer", summary="Encode transfer payload"
+)
 async def transfer(args: TransferArgs = Depends()):
     return {
         "data": Protocol.encode({
@@ -31,7 +37,9 @@ async def transfer(args: TransferArgs = Depends()):
         })
     }
 
-@router.get("/issue")
+@router.get(
+    "/issue", summary="Encode issue payload"
+)
 async def issue(args: IssueArgs = Depends()):
     return {
         "data": Protocol.encode({
@@ -41,7 +49,9 @@ async def issue(args: IssueArgs = Depends()):
         })
     }
 
-@router.get("/create")
+@router.get(
+    "/create", summary="Encode create payload"
+)
 async def create(args: CreateArgs = Depends()):
     return {
         "data": Protocol.encode({
@@ -53,7 +63,9 @@ async def create(args: CreateArgs = Depends()):
         })
     }
 
-@router.get("/ban")
+@router.get(
+    "/ban", summary="Encode ban payload"
+)
 async def ban():
     return {
         "data": Protocol.encode({
@@ -61,7 +73,9 @@ async def ban():
         })
     }
 
-@router.get("/unban")
+@router.get(
+    "/unban", summary="Encode unban payload"
+)
 async def unban():
     return {
         "data": Protocol.encode({

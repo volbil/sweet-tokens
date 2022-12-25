@@ -7,7 +7,9 @@ from .. import utils
 
 router = APIRouter(prefix="/layer", tags=["Layer"])
 
-@router.get("/latest")
+@router.get(
+    "/latest", summary="Latest synced block"
+)
 async def latest():
     latest = await Block.filter().order_by("-height").limit(1).first()
 
@@ -17,7 +19,9 @@ async def latest():
         "hash": latest.hash,
     }
 
-@router.get("/tokens")
+@router.get(
+    "/tokens", summary="Tokens list"
+)
 async def tokens(page: int = Query(default=1, ge=1)):
     total = await Token.filter().count()
     limit, offset, size = utils.pagination(page)
@@ -48,7 +52,9 @@ async def tokens(page: int = Query(default=1, ge=1)):
         "list": result
     }
 
-@router.get("/token/{ticker}")
+@router.get(
+    "/token/{ticker}", summary="Token info"
+)
 async def token(ticker: str):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
@@ -67,7 +73,9 @@ async def token(ticker: str):
         "holders": holders
     }
 
-@router.get("/token/{ticker}/holders")
+@router.get(
+    "/token/{ticker}/holders", summary="Token holders"
+)
 async def holders(ticker: str, page: int = Query(default=1, ge=1)):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
@@ -97,7 +105,9 @@ async def holders(ticker: str, page: int = Query(default=1, ge=1)):
         "list": result
     }
 
-@router.get("/token/{ticker}/transfers")
+@router.get(
+    "/token/{ticker}/transfers", summary="Token transfers"
+)
 async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
@@ -133,7 +143,9 @@ async def transfers(ticker: str, page: int = Query(default=1, ge=1)):
         "list": result
     }
 
-@router.get("/transfer/{txid}")
+@router.get(
+    "/transfer/{txid}", summary="Transfer info"
+)
 async def transfer(txid: str):
     if not (transfer := await Transfer.filter(txid=txid).first()):
         raise Abort("transfer", "not-found")
@@ -155,7 +167,9 @@ async def transfer(txid: str):
         "txid": transfer.txid,
     }
 
-@router.get("/address/{label}")
+@router.get(
+    "/address/{label}", summary="Address stats and balances"
+)
 async def address(label: str):
     result = []
 
@@ -193,7 +207,9 @@ async def address(label: str):
         "balances": result
     }
 
-@router.get("/address/{label}/transfers")
+@router.get(
+    "/address/{label}/transfers", summary="Address transfers"
+)
 async def address(label: str, page: int = Query(default=1, ge=1)):
     result = []
 
@@ -236,7 +252,9 @@ async def address(label: str, page: int = Query(default=1, ge=1)):
         "list": result
     }
 
-@router.get("/address/{label}/transfers/{ticker}")
+@router.get(
+    "/address/{label}/transfers/{ticker}", summary="Address token transfers"
+)
 async def address(label: str, ticker: str, page: int = Query(default=1, ge=1)):
     result = []
 
