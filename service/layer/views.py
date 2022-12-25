@@ -174,3 +174,91 @@ async def address(label: str):
         })
 
     return result
+
+@router.get("/address/{label}/transfers")
+async def address(label: str, page: int = Query(default=1, ge=1)):
+    result = []
+
+    if not (address := await Address.filter(label=label).first()):
+        return {
+            "pagination": {"pages": 0, "total": 0, "page": 0},
+            "list": result
+        }
+
+    total = await address.index.filter().count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+
+    index_list = await address.index.filter().order_by(
+        "-created"
+    ).limit(limit).offset(offset)
+
+    for index in index_list:
+        transfer = await index.transfer
+
+        receiver = await transfer.receiver
+        sender = await transfer.sender
+        block = await transfer.block
+        token = await index.token
+
+        result.append({
+            "receiver": receiver.label if receiver else None,
+            "created": int(transfer.created.timestamp()),
+            "sender": sender.label if sender else None,
+            "category": transfer.category,
+            "decimals": token.decimals,
+            "value": transfer.value,
+            "height": block.height,
+            "token": token.ticker,
+            "txid": transfer.txid,
+        })
+
+    return {
+        "pagination": pagination,
+        "list": result
+    }
+
+@router.get("/address/{label}/transfers/{ticker}")
+async def address(label: str, ticker: str, page: int = Query(default=1, ge=1)):
+    result = []
+
+    if not (address := await Address.filter(label=label).first()):
+        return {
+            "pagination": {"pages": 0, "total": 0, "page": 0},
+            "list": result
+        }
+
+    if not (token := await Token.filter(ticker=ticker).first()):
+        raise Abort("token", "not-found")
+
+    total = await address.index.filter(token=token).count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+
+    index_list = await address.index.filter(token=token).order_by(
+        "-created"
+    ).limit(limit).offset(offset)
+
+    for index in index_list:
+        transfer = await index.transfer
+
+        receiver = await transfer.receiver
+        sender = await transfer.sender
+        block = await transfer.block
+
+        result.append({
+            "receiver": receiver.label if receiver else None,
+            "created": int(transfer.created.timestamp()),
+            "sender": sender.label if sender else None,
+            "category": transfer.category,
+            "decimals": token.decimals,
+            "value": transfer.value,
+            "height": block.height,
+            "token": token.ticker,
+            "txid": transfer.txid,
+        })
+
+    return {
+        "pagination": pagination,
+        "list": result
+    }
