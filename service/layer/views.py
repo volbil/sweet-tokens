@@ -160,20 +160,38 @@ async def address(label: str):
     result = []
 
     if not (address := await Address.filter(label=label).first()):
-        return result
+        return {
+            "stats": {
+                "transfers": 0,
+                "balances": 0
+            },
+            "balances": result
+        }
 
     async for balance in address.balances:
         token = await balance.token
 
+        transfers = await address.index.filter(token=token).count()
+
         result.append({
-            "address": address.label,
             "received": balance.received,
+            "decimals": token.decimals,
+            "address": address.label,
+            "transfers": transfers,
             "value": balance.value,
             "sent": balance.sent,
-            "decimals": token.decimals,
         })
 
-    return result
+    transfers_count = await address.index.filter().count()
+    balances_count = await address.balances.filter().count()
+
+    return {
+        "stats": {
+            "transfers": transfers_count,
+            "balances": balances_count
+        },
+        "balances": result
+    }
 
 @router.get("/address/{label}/transfers")
 async def address(label: str, page: int = Query(default=1, ge=1)):
