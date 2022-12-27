@@ -16,10 +16,10 @@ ADMIN_ADDRESSES = {
 NETWORK_DECIMALS = 4
 
 # Transaction build default fee
-DEFAULT_FEE = 0.015
+DEFAULT_FEE = 1000  # 0.1 MBC in satoshis
 
 # Transaction build default marker
-DEFAULT_MARKER = 0.1
+DEFAULT_MARKER = 1000  # 0.1 MBC in satoshis
 
 # Transfer categories
 CATEGORY_TRANSFER = "transfer"
