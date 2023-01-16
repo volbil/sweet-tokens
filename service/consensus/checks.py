@@ -31,7 +31,7 @@ def receiver(inputs, outputs):
         log_message("More than one receiver")
         return None
 
-    return outputs_shallow[0]
+    return list(outputs_shallow)[0]
 
 def admin(send_address_label, height):
     if not send_address_label in constants.ADMIN_ADDRESSES:
