@@ -98,15 +98,10 @@ async def validate_admin(inputs, outputs, height, action_ban):
     if not checks.outputs_len(outputs):
         return False
 
-    if not checks.receiver(inputs, outputs):
+    if not (receive_address := checks.receiver(inputs, outputs)):
         return False
 
     send_address = list(inputs)[0]
-
-    outputs_shallow = copy.copy(outputs)
-    outputs_shallow.pop(send_address)
-
-    receive_address = list(outputs_shallow)[0]
 
     # Check if transaction has been sent from admin address
     if not checks.admin(send_address, height):
