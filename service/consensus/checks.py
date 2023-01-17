@@ -1,7 +1,9 @@
 from ..models import Token, Balance, Address
 from ..utils import log_message
+from ..chain import get_chain
 from .. import constants
 from .. import utils
+import config
 import copy
 
 def inputs_len(inputs):
@@ -34,16 +36,18 @@ def receiver(inputs, outputs):
     return list(outputs_shallow)[0]
 
 def admin(send_address_label, height):
-    if not send_address_label in constants.ADMIN_ADDRESSES:
+    chain = get_chain(config.chain)
+
+    if not send_address_label in chain["admin"]:
         return False
 
-    if constants.ADMIN_ADDRESSES[send_address_label][0] > height:
+    if chain["admin"][send_address_label][0] > height:
         log_message(f"Address {send_address_label} not yet admin")
         return False
 
-    if constants.ADMIN_ADDRESSES[
+    if chain["admin"][
         send_address_label
-    ][1] and constants.ADMIN_ADDRESSES[
+    ][1] and chain["admin"][
         send_address_label
     ][1] < height:
         log_message(f"Address {send_address_label} not admin anymore")
@@ -75,21 +79,21 @@ async def ticker(ticker):
         return False
 
     if await Token.filter(ticker=ticker).first():
-        log_message(f"Token with {ticker} already exists")
+        log_message(f"Token with ticker {ticker} already exists")
         return False
 
     return True
 
 async def token(ticker):
     if not await Token.filter(ticker=ticker).first():
-        log_message(f"Token with {ticker} don't exists")
+        log_message(f"Token with ticker {ticker} don't exists")
         return False
 
     return True
 
 async def owner(ticker, owner_address):
     if not (token := await Token.filter(ticker=ticker).first()):
-        log_message(f"Token with {ticker} don't exists")
+        log_message(f"Token with ticker {ticker} don't exists")
         return False
 
     owner = await token.owner
@@ -102,7 +106,7 @@ async def owner(ticker, owner_address):
 
 async def reissuable(ticker):
     if not (token := await Token.filter(ticker=ticker).first()):
-        log_message(f"Token with {ticker} don't exists")
+        log_message(f"Token with ticker {ticker} don't exists")
         return False
     
     return token.reissuable
@@ -117,7 +121,7 @@ async def supply_create(value, decimals):
 
 async def supply_issue(ticker, value):
     if not (token := await Token.filter(ticker=ticker).first()):
-        log_message(f"Token with {ticker} don't exists")
+        log_message(f"Token with ticker {ticker} don't exists")
         return False
 
     value = utils.amount(value, token.decimals)
@@ -130,7 +134,7 @@ async def supply_issue(ticker, value):
 
 async def balance(ticker, address_label, value):
     if not (token := await Token.filter(ticker=ticker).first()):
-        log_message(f"Token with {ticker} don't exists")
+        log_message(f"Token with ticker {ticker} don't exists")
         return False
 
     if not (address := await Address.filter(label=address_label).first()):

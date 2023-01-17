@@ -1,8 +1,9 @@
 from fastapi import APIRouter
+from ..chain import get_chain
 from .args import BuildArgs
 from ..errors import Abort
-from .. import constants
 from .. import utils
+import config
 
 router = APIRouter(tags=["Construct"])
 
@@ -63,8 +64,10 @@ async def construct(args: BuildArgs):
     if args.receive_address:
         change -= args.marker
 
+    chain = get_chain(config.chain)
+
     outputs[args.send_address] = utils.amount(
-        change, constants.NETWORK_DECIMALS
+        change, chain["decimals"]
     )
 
     outputs["data"] = args.payload

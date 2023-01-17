@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from ..protocol import Protocol
 from .args import TransferArgs
+from ..chain import get_chain
 from .args import CreateArgs
 from .args import IssueArgs
 from .. import constants
+import config
 
 router = APIRouter(prefix="/message", tags=["Messages"])
 
@@ -22,15 +24,18 @@ async def categories():
 @router.get(
     "/decode", summary="Decode payload"
 )
-async def decode(payload: str):
-    return Protocol.decode(payload)
+async def decode(payload: str = Query(min_length=2)):
+    payload_raw = payload[2:]
+    return Protocol.decode(payload_raw)
 
 @router.get(
     "/transfer", summary="Encode transfer payload"
 )
 async def transfer(args: TransferArgs = Depends()):
+    chain = get_chain(config.chain)
+
     return {
-        "data": Protocol.encode({
+        "data": chain["id"] + Protocol.encode({
             "category": constants.TRANSFER,
             "value": args.value,
             "ticker": args.ticker
@@ -41,8 +46,10 @@ async def transfer(args: TransferArgs = Depends()):
     "/issue", summary="Encode issue payload"
 )
 async def issue(args: IssueArgs = Depends()):
+    chain = get_chain(config.chain)
+
     return {
-        "data": Protocol.encode({
+        "data": chain["id"] + Protocol.encode({
             "category": constants.ISSUE,
             "value": args.value,
             "ticker": args.ticker
@@ -53,8 +60,10 @@ async def issue(args: IssueArgs = Depends()):
     "/create", summary="Encode create payload"
 )
 async def create(args: CreateArgs = Depends()):
+    chain = get_chain(config.chain)
+
     return {
-        "data": Protocol.encode({
+        "data": chain["id"] + Protocol.encode({
             "category": constants.CREATE,
             "reissuable": args.reissuable,
             "decimals": args.decimals,
@@ -67,8 +76,10 @@ async def create(args: CreateArgs = Depends()):
     "/ban", summary="Encode ban payload"
 )
 async def ban():
+    chain = get_chain(config.chain)
+
     return {
-        "data": Protocol.encode({
+        "data": chain["id"] + Protocol.encode({
             "category": constants.BAN
         })
     }
@@ -77,8 +88,10 @@ async def ban():
     "/unban", summary="Encode unban payload"
 )
 async def unban():
+    chain = get_chain(config.chain)
+
     return {
-        "data": Protocol.encode({
+        "data": chain["id"] + Protocol.encode({
             "category": constants.UNBAN
         })
     }

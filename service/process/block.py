@@ -2,12 +2,15 @@ from tortoise.transactions import atomic
 from ..parse import parse_transaction
 from .decoded import process_decoded
 from ..protocol import Protocol
+from ..chain import get_chain
 from ..models import Block
-from .. import constants
 from .. import utils
+import config
 
 @atomic()
 async def process_block(data):
+    chain = get_chain(config.chain)
+
     block = await Block.create(**{
         "created": data["block"]["created"],
         "height": data["block"]["height"],
@@ -32,20 +35,32 @@ async def process_block(data):
                     inputs[input_output["address"]] = 0
 
                 inputs[input_output["address"]] += utils.satoshis(
-                    input_output["value"], constants.NETWORK_DECIMALS
+                    input_output["value"], chain["decimals"]
                 )
 
         for output in tx_data["outputs"]:
             if output["script_type"] == "nulldata":
                 payload = output["script_hex"][4:]
-                decoded = Protocol.decode(payload)
+
+                # Prevent crash with malformed payload
+                if len(payload) < 4:
+                    continue
+
+                # Check chain id
+                chain_id = payload[:2]
+                if chain_id != chain["id"]:
+                    continue
+                
+                # Decode payload
+                payload_raw = payload[2:]
+                decoded = Protocol.decode(payload_raw)
 
             if output["address"]:
                 if output["address"] not in outputs:
                     outputs[output["address"]] = 0
 
                 outputs[output["address"]] += utils.satoshis(
-                    output["value"], constants.NETWORK_DECIMALS
+                    output["value"], chain["decimals"]
                 )
 
         if decoded:

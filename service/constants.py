@@ -1,26 +1,6 @@
 # System version
 VERSION = "0.1"
 
-# Token layer genesis block
-GENESIS = {
-    "hash": "ac3be150a8dcbb2db6df462a9875c67f55e845de40cb49dc2e30f4dfab9b9115",
-    "height": 1672530
-}
-
-# Token layer admin addresses
-ADMIN_ADDRESSES = {
-    "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1670859, None]
-}
-
-# Network decimals
-NETWORK_DECIMALS = 4
-
-# Transaction build default fee
-DEFAULT_FEE = 1000  # 0.1 MBC in satoshis
-
-# Transaction build default marker
-DEFAULT_MARKER = 1000  # 0.1 MBC in satoshis
-
 # Transfer categories
 CATEGORY_TRANSFER = "transfer"
 CATEGORY_CREATE = "create"

@@ -1,5 +1,4 @@
 from . import checks
-import copy
 
 async def validate_create(decoded, inputs, height):
     if not checks.inputs_len(inputs):
@@ -8,8 +7,8 @@ async def validate_create(decoded, inputs, height):
     send_address = list(inputs)[0]
 
     # Check if transaction has been sent from admin address
-    if not checks.admin(send_address, height):
-        return False
+    # if not checks.admin(send_address, height):
+    #     return False
 
     # Check value for new token
     if not checks.value(decoded["value"]):
@@ -37,9 +36,9 @@ async def validate_issue(decoded, inputs, height):
 
     send_address = list(inputs)[0]
 
-    # Check if transaction has been sent from admin address
-    if not checks.admin(send_address, height):
-        return False
+    # # Check if transaction has been sent from admin address
+    # if not checks.admin(send_address, height):
+    #     return False
 
     # Check value for new tokens issued
     if not checks.value(decoded["value"]):
