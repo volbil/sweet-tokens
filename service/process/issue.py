@@ -30,6 +30,7 @@ async def process_issue(decoded, inputs, block, txid):
         "category": constants.CATEGORY_ISSUE,
         "created": block.created,
         "receiver": address,
+        "has_lock": False,
         "value": value,
         "token": token,
         "block": block,

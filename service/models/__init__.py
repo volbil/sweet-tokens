@@ -5,4 +5,5 @@ from .balance import Balance
 from .block import Block
 from .unban import Unban
 from .index import Index
+from .lock import Lock
 from .ban import Ban

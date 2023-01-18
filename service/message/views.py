@@ -37,8 +37,9 @@ async def transfer(args: TransferArgs = Depends()):
     return {
         "data": chain["id"] + Protocol.encode({
             "category": constants.TRANSFER,
+            "ticker": args.ticker,
             "value": args.value,
-            "ticker": args.ticker
+            "lock": args.lock
         })
     }
 

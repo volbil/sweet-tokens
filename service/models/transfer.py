@@ -5,6 +5,7 @@ class Transfer(Base):
     txid = fields.CharField(index=True, unique=True, max_length=64)
     value = fields.DecimalField(max_digits=28, decimal_places=8)
     category = fields.CharField(index=True, max_length=32)
+    has_lock = fields.BooleanField()
     created = NativeDatetimeField()
 
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
@@ -26,6 +27,7 @@ class Transfer(Base):
     )
 
     index = fields.ReverseRelation["Index"]
+    locks = fields.ReverseRelation["Lock"]
 
     class Meta:
         table = "service_transfers"

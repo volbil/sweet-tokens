@@ -73,7 +73,9 @@ async def construct(args: BuildArgs):
     outputs["data"] = args.payload
 
     if args.receive_address:
-        outputs[args.receive_address] = args.marker
+        outputs[args.receive_address] = utils.amount(
+            args.marker, chain["decimals"]
+        )
 
     raw_tx = await utils.make_request("createrawtransaction", [
         inputs, outputs

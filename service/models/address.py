@@ -17,6 +17,7 @@ class Address(Base):
     admin_ban = fields.ReverseRelation["Ban"]
 
     index = fields.ReverseRelation["Index"]
+    locks = fields.ReverseRelation["Lock"]
 
     class Meta:
         table = "service_addresses"

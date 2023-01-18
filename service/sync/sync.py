@@ -1,10 +1,10 @@
 from ..process import process_block, process_reorg
 from ..utils import make_request, log_message
+from ..process import process_locks
 from ..parse import parse_block
+from ..chain import get_chain
 from tortoise import Tortoise
 from ..models import Block
-from ..chain import get_chain
-from .. import constants
 import config
 
 async def sync_chain():
@@ -52,6 +52,8 @@ async def sync_chain():
             block_data = await parse_block(height)
 
             await process_block(block_data)
+
+            await process_locks(height)
 
         except KeyboardInterrupt:
             log_message(f"Keyboard interrupt")

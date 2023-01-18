@@ -1,5 +1,5 @@
+from ..models import Balance, Transfer, Lock
 from ..models import Token, Address, Index
-from ..models import Balance, Transfer
 from ..utils import log_message
 from .. import constants
 from .. import utils
@@ -32,11 +32,14 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
             "token": token
         })
 
+    has_lock = decoded["lock"] != None
+
     transfer = await Transfer.create(**{
         "category": constants.CATEGORY_TRANSFER,
         "receiver": receive_address,
         "created": block.created,
         "sender": send_address,
+        "has_lock": has_lock,
         "value": value,
         "token": token,
         "block": block,
@@ -47,7 +50,20 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
     send_balance.sent += transfer.value
 
     receive_balance.received += transfer.value
-    receive_balance.value += transfer.value
+
+    if has_lock:
+        receive_balance.locked += transfer.value
+
+        await Lock.create(**{
+            "unlock_height": decoded["lock"],
+            "address": receive_address,
+            "value": transfer.value,
+            "transfer": transfer,
+            "token": token
+        })
+
+    else:
+        receive_balance.value += transfer.value
 
     await receive_balance.save()
     await send_balance.save()

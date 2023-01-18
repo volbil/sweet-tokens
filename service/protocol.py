@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
+from typing import Union
 from . import constants
 import msgpack
 
@@ -27,6 +28,7 @@ class IssueValidation(CategoryValidation):
     )
 
 class TransferValidation(CategoryValidation):
+    lock: Union[int, None] = Field(default=None, ge=1)
     value: int = Field(ge=1, le=constants.MAX_VALUE)
 
     ticker: str = Field(
@@ -70,8 +72,9 @@ class Protocol(object):
                 data = TransferValidation(**payload)
                 payload = {
                     "c": data.category,
+                    "t": data.ticker,
                     "a": data.value,
-                    "t": data.ticker
+                    "l": data.lock
                 }
 
             elif category == constants.BAN:
@@ -133,6 +136,7 @@ class Protocol(object):
             elif category == constants.TRANSFER:
                 payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
+                payload["lock"] = payload.pop("l")
 
                 TransferValidation(**payload)
 

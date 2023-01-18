@@ -35,7 +35,7 @@ async def process_decoded(
     if category == constants.TRANSFER:
         # Validate issue payload
         if await consensus.validate_transfer(
-            decoded, inputs, outputs
+            decoded, inputs, outputs, block.height
         ):
             await process_transfer(
                 decoded, inputs, outputs, block, txid

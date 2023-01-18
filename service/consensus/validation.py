@@ -62,7 +62,10 @@ async def validate_issue(decoded, inputs, height):
 
     return True
 
-async def validate_transfer(decoded, inputs, outputs):
+async def validate_transfer(decoded, inputs, outputs, height):
+    if decoded["lock"] and decoded["lock"] <= height:
+        return False
+
     if not checks.inputs_len(inputs):
         return False
 

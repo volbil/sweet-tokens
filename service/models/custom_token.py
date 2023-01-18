@@ -16,6 +16,7 @@ class Token(Base):
     transfers = fields.ReverseRelation["Transfer"]
     balances = fields.ReverseRelation["Balance"]
     index = fields.ReverseRelation["Index"]
+    locks = fields.ReverseRelation["Lock"]
 
     class Meta:
         table = "service_tokens"

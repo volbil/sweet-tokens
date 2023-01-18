@@ -37,6 +37,7 @@ async def process_create(decoded, inputs, block, txid):
         "category": constants.CATEGORY_CREATE,
         "created": block.created,
         "receiver": address,
+        "has_lock": False,
         "value": value,
         "token": token,
         "block": block,

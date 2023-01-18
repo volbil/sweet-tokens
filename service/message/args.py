@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Union
 from .. import constants
 
 class CreateArgs(BaseModel):
@@ -13,6 +14,7 @@ class CreateArgs(BaseModel):
     )
 
 class TransferArgs(BaseModel):
+    lock: Union[int, None] = Field(default=None, ge=1)
     value: int = Field(ge=1, le=constants.MAX_VALUE)
 
     ticker: str = Field(
