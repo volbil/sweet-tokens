@@ -4,6 +4,7 @@ from .args import TransferArgs
 from ..chain import get_chain
 from .args import CreateArgs
 from .args import IssueArgs
+from .args import BurnArgs
 from .. import constants
 import config
 
@@ -18,6 +19,7 @@ async def categories():
         "create": constants.CREATE,
         "issue": constants.ISSUE,
         "unban": constants.UNBAN,
+        "burn": constants.BURN,
         "ban": constants.BAN
     }
 
@@ -40,6 +42,20 @@ async def transfer(args: TransferArgs = Depends()):
             "ticker": args.ticker,
             "value": args.value,
             "lock": args.lock
+        })
+    }
+
+@router.get(
+    "/burn", summary="Encode burn payload"
+)
+async def burn(args: BurnArgs = Depends()):
+    chain = get_chain(config.chain)
+
+    return {
+        "data": chain["id"] + Protocol.encode({
+            "category": constants.BURN,
+            "ticker": args.ticker,
+            "value": args.value
         })
     }
 

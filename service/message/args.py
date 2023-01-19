@@ -23,6 +23,15 @@ class TransferArgs(BaseModel):
         regex=constants.TICKER_RE
     )
 
+class BurnArgs(BaseModel):
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+
+    ticker: str = Field(
+        min_length=constants.MIN_TICKER_LENGTH,
+        max_length=constants.MAX_TICKER_LENGTH,
+        regex=constants.TICKER_RE
+    )
+
 class IssueArgs(BaseModel):
     value: int = Field(ge=1, le=constants.MAX_VALUE)
 

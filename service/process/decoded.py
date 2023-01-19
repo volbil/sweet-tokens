@@ -3,6 +3,7 @@ from .transfer import process_transfer
 from .create import process_create
 from .issue import process_issue
 from .unban import process_unban
+from .burn import process_burn
 from .ban import process_ban
 from .. import constants
 from .. import consensus
@@ -33,7 +34,7 @@ async def process_decoded(
             )
 
     if category == constants.TRANSFER:
-        # Validate issue payload
+        # Validate transfer payload
         if await consensus.validate_transfer(
             decoded, inputs, outputs, block.height
         ):
@@ -41,13 +42,24 @@ async def process_decoded(
                 decoded, inputs, outputs, block, txid
             )
 
+    if category == constants.BURN:
+        # Validate burn payload
+        if await consensus.validate_burn(
+            decoded, inputs
+        ):
+            await process_burn(
+                decoded, inputs, block, txid
+            )
+
     if category == constants.BAN:
+        # Validate admin
         if await consensus.validate_admin(inputs, outputs, block.height, True):
             await process_ban(
                 inputs, outputs, block, txid
             )
 
     if category == constants.UNBAN:
+        # Validate admin
         if await consensus.validate_admin(inputs, outputs, block.height, False):
             await process_unban(
                 inputs, outputs, block, txid

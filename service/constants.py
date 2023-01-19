@@ -5,6 +5,7 @@ VERSION = "0.1"
 CATEGORY_TRANSFER = "transfer"
 CATEGORY_CREATE = "create"
 CATEGORY_ISSUE = "issue"
+CATEGORY_BURN = "burn"
 
 # Payload categories
 CREATE = 1
@@ -12,6 +13,7 @@ ISSUE = 2
 TRANSFER = 3
 BAN = 4
 UNBAN = 5
+BURN = 6
 
 # Consensus decimals constraints
 MIN_DECIMALS = 0

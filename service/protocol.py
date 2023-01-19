@@ -5,7 +5,7 @@ from . import constants
 import msgpack
 
 class CategoryValidation(BaseModel):
-    category: int = Field(ge=1, le=5)
+    category: int = Field(ge=constants.CREATE, le=constants.BURN)
 
 class CreateValidation(CategoryValidation):
     decimals: int = Field(ge=constants.MIN_DECIMALS, le=constants.MAX_DECIMALS)
@@ -29,6 +29,15 @@ class IssueValidation(CategoryValidation):
 
 class TransferValidation(CategoryValidation):
     lock: Union[int, None] = Field(default=None, ge=1)
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+
+    ticker: str = Field(
+        min_length=constants.MIN_TICKER_LENGTH,
+        max_length=constants.MAX_TICKER_LENGTH,
+        regex=constants.TICKER_RE
+    )
+
+class BurnValidation(CategoryValidation):
     value: int = Field(ge=1, le=constants.MAX_VALUE)
 
     ticker: str = Field(
@@ -75,6 +84,14 @@ class Protocol(object):
                     "t": data.ticker,
                     "a": data.value,
                     "l": data.lock
+                }
+
+            elif category == constants.BURN:
+                data = BurnValidation(**payload)
+                payload = {
+                    "c": data.category,
+                    "t": data.ticker,
+                    "a": data.value
                 }
 
             elif category == constants.BAN:
@@ -139,6 +156,12 @@ class Protocol(object):
                 payload["lock"] = payload.pop("l")
 
                 TransferValidation(**payload)
+
+            elif category == constants.BURN:
+                payload["value"] = payload.pop("a")
+                payload["ticker"] = payload.pop("t")
+
+                BurnValidation(**payload)
 
         except ValidationError as e:
             print("Failed to decode payload:", e)
