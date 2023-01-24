@@ -28,6 +28,13 @@ async def validate_create(decoded, inputs, height):
     if not await checks.ticker(decoded["ticker"]):
         return False
 
+    # Check ticker type constraints
+    if not checks.ticker_type(
+        decoded["ticker"], decoded["reissuable"],
+        decoded["decimals"], decoded["value"]
+    ):
+        return False
+
     return True
 
 async def validate_issue(decoded, inputs, height):

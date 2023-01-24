@@ -10,7 +10,8 @@ CHAIN = {
             "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1670859, None]
         },
         "fee": 1000,  # 0.1 MBC in satoshis
-        "marker": 1000,  # 0.1 MBC in satoshis
+        "marker": 1000,  # 0.1 MBC in satoshis,
+        "protected": ["MBC", "MICROBITCOIN"]
     },
     "mbc-testnet": {
         "id": "02",
@@ -24,6 +25,7 @@ CHAIN = {
         },
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis
+        "protected": ["MBC", "MICROBITCOIN"]
     }
 }
 

@@ -37,7 +37,7 @@ async def tokens_list(
     for token in tokens:
         holders = await token.balances.filter(value__gt=0).count()
         transfers = await token.transfers.filter().count()
-        owner = await token.owner
+        # owner = await token.owner
 
         result.append({
             "reissuable": token.reissuable,
@@ -45,7 +45,7 @@ async def tokens_list(
             "transfers": transfers,
             "supply": token.supply,
             "ticker": token.ticker,
-            "owner": owner.label,
+            # "owner": owner.label,
             "holders": holders
         })
 
@@ -65,7 +65,7 @@ async def token_info(
     
     holders = await token.balances.filter(value__gt=0).count()
     transfers = await token.transfers.filter().count()
-    owner = await token.owner
+    # owner = await token.owner
 
     return {
         "reissuable": token.reissuable,
@@ -73,7 +73,7 @@ async def token_info(
         "transfers": transfers,
         "supply": token.supply,
         "ticker": token.ticker,
-        "owner": owner.label,
+        # "owner": owner.label,
         "holders": holders
     }
 
@@ -190,29 +190,41 @@ async def transfers_list(
     }
 
 @router.get(
-    "/transfer/{txid}", summary="Transfer info"
+    "/tx/{txid}", summary="Transaction transfers"
 )
 async def transfer_info(
-    txid: str
+    txid: str, page: int = Query(default=1, ge=1)
 ):
-    if not (transfer := await Transfer.filter(txid=txid).first()):
-        raise Abort("transfer", "not-found")
+    total = await Transfer.filter(txid=txid).count()
+    limit, offset, size = utils.pagination(page)
+    pagination = utils.pagination_dict(total, page, size)
+    result = []
 
-    receiver = await transfer.receiver
-    sender = await transfer.sender
-    block = await transfer.block
-    token = await transfer.token
+    transfers = await Transfer.filter(txid=txid).order_by(
+        "-created"
+    ).limit(limit).offset(offset)
+
+    for transfer in transfers:
+        receiver = await transfer.receiver
+        sender = await transfer.sender
+        token = await transfer.token
+        block = await transfer.block
+
+        result.append({
+            "receiver": receiver.label if receiver else None,
+            "created": int(transfer.created.timestamp()),
+            "sender": sender.label if sender else None,
+            "category": transfer.category,
+            "decimals": token.decimals,
+            "value": transfer.value,
+            "height": block.height,
+            "token": token.ticker,
+            "txid": transfer.txid,
+        })
 
     return {
-        "receiver": receiver.label if receiver else None,
-        "created": int(transfer.created.timestamp()),
-        "sender": sender.label if sender else None,
-        "category": transfer.category,
-        "decimals": token.decimals,
-        "value": transfer.value,
-        "height": block.height,
-        "token": token.ticker,
-        "txid": transfer.txid,
+        "pagination": pagination,
+        "list": result
     }
 
 @router.get(

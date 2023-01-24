@@ -7,6 +7,17 @@ CATEGORY_CREATE = "create"
 CATEGORY_ISSUE = "issue"
 CATEGORY_BURN = "burn"
 
+# Token types
+TOKEN_ROOT = "root"
+TOKEN_SUB = "sub"
+TOKEN_UNIQUE = "unique"
+TOKEN_OWNER = "owner"
+
+# Ticker flags
+FLAG_SUB = "/"
+FLAG_UNIQUE = "#"
+FLAG_OWNER = "!"
+
 # Payload categories
 CREATE = 1
 ISSUE = 2
@@ -21,7 +32,7 @@ MAX_DECIMALS = 8
 
 # Consensus ticker length
 MIN_TICKER_LENGTH = 3
-MAX_TICKER_LENGTH = 8
+MAX_TICKER_LENGTH = 32
 
 # Consensus value constraints
 MIN_VALUE = 1

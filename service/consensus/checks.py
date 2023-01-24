@@ -3,6 +3,7 @@ from ..utils import log_message
 from ..chain import get_chain
 from .. import constants
 from .. import utils
+from . import regex
 import config
 import copy
 
@@ -69,13 +70,33 @@ def decimals(decimals):
 
     return True
 
+def ticker_type(ticker, reissuable, decimals, value):
+    ticker_data = regex.ticker(ticker)
+
+    if ticker_data["type"] == constants.TOKEN_OWNER:
+        log_message("Can't create owner token")
+        return False
+
+    if ticker_data["type"] == constants.TOKEN_UNIQUE:
+        if reissuable:
+            log_message("Unique token can't be reissuable")
+            return False
+
+        if decimals > 0:
+            log_message("Unique token should have 0 decimals")
+            return False
+
+        if value != 1:
+            log_message("Unique token valube should be 1")
+            return False
+
+    return True
+
 async def ticker(ticker):
-    if len(
-        ticker
-    ) < constants.MIN_TICKER_LENGTH or len(
-        ticker
-    ) > constants.MAX_TICKER_LENGTH:
-        log_message(f"Ticker {ticker} not met constraints")
+    ticker_data = regex.ticker(ticker)
+
+    if not ticker_data["valid"]:
+        log_message(ticker_data["error"])
         return False
 
     if await Token.filter(ticker=ticker).first():
@@ -92,13 +113,23 @@ async def token(ticker):
     return True
 
 async def owner(ticker, owner_address):
-    if not (token := await Token.filter(ticker=ticker).first()):
+    if not await Token.filter(ticker=ticker).first():
         log_message(f"Token with ticker {ticker} don't exists")
         return False
 
-    owner = await token.owner
+    owner_ticker = ticker + constants.FLAG_OWNER
 
-    if owner.label != owner_address:
+    if not (token_owner := await Token.filter(ticker=owner_ticker).first()):
+        log_message(f"Token with ticker {owner_ticker} don't exists")
+        return False
+
+    if not (balance := await token_owner.balances.filter(value__gt=0).first()):
+        log_message(f"Couldn't find holder of {owner_ticker}")
+        return False
+
+    holder = await balance.address
+
+    if holder.label != owner_address:
         log_message(f"Address {owner_address} is not owner of {ticker}")
         return False
 
@@ -112,9 +143,9 @@ async def reissuable(ticker):
     return token.reissuable
 
 async def supply_create(value, decimals):
-    value = utils.amount(value, decimals)
-    if value > constants.MAX_SUPPLY:
-        log_message(f"Supply {value} not met constraint")
+    supply = utils.amount(value, decimals)
+    if supply > constants.MAX_SUPPLY:
+        log_message(f"Supply {supply} not met constraint")
         return False
 
     return True
