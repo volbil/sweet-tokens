@@ -87,7 +87,7 @@ def ticker(ticker: str) -> dict:
         parent_name = constants.FLAG_SUB.join(root_token + sub_tokens)
 
         result["valid"] = True
-        result["parent_name"] = parent_name
+        result["parent"] = parent_name
         result["type"] = constants.TOKEN_UNIQUE
 
         return result
@@ -95,7 +95,7 @@ def ticker(ticker: str) -> dict:
     if sub_tokens:
         parent_name = constants.FLAG_SUB.join(root_token + sub_tokens[:-1])
 
-        result["parent_name"] = parent_name
+        result["parent"] = parent_name
         result["type"] = constants.TOKEN_SUB
         result["valid"] = True
 

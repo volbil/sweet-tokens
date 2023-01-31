@@ -88,6 +88,11 @@ def test():
     assert(ticker("MAX_ASSET_IS_32_CHARACTERS_LONGT!")["valid"] == False)
     assert(ticker("ABC#UNIQUE!")["valid"] == False)
 
+    assert(ticker("ABC")["parent"] == None)
+    assert(ticker("ABC/A")["parent"] == "ABC")
+    assert(ticker("ABC/A/1")["parent"] == "ABC/A")
+    assert(ticker("ABC/A/1#UNIQUE")["parent"] == "ABC/A/1")
+
 
 if __name__ == "__main__":
     test()

@@ -11,6 +11,8 @@ async def validate_create(decoded, inputs, outputs):
     if not (receive_address := checks.receiver(inputs, outputs)):
         return False
 
+    send_address = list(inputs)[0]
+
     # Check value for new token
     if not checks.value(decoded["value"]):
         return False
@@ -34,6 +36,10 @@ async def validate_create(decoded, inputs, outputs):
         decoded["ticker"], decoded["reissuable"],
         decoded["decimals"], decoded["value"]
     ):
+        return False
+
+    # Check if sender owns parrent token
+    if not await checks.owner_parent(decoded["ticker"], send_address):
         return False
 
     # Check if fee is enough for given action
@@ -69,7 +75,7 @@ async def validate_issue(decoded, inputs, outputs):
     if not await checks.token(decoded["ticker"]):
         return False
 
-    # Check if token owner
+    # Check if sender owns token
     if not await checks.owner(decoded["ticker"], send_address):
         return False
 
