@@ -3,14 +3,10 @@ from ..utils import make_request, log_message
 from ..process import process_locks
 from ..parse import parse_block
 from ..chain import get_chain
-from tortoise import Tortoise
 from ..models import Block
 import config
 
 async def sync_chain():
-    await Tortoise.init(config=config.tortoise)
-    await Tortoise.generate_schemas()
-
     # Init genesis
     if not (await Block.filter().order_by("-height").limit(1).first()):
         log_message("Adding genesis block to db")
@@ -58,5 +54,3 @@ async def sync_chain():
         except KeyboardInterrupt:
             log_message(f"Keyboard interrupt")
             break
-
-    await Tortoise.close_connections()
