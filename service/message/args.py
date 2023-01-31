@@ -36,3 +36,8 @@ class IssueArgs(BaseModel):
         min_length=constants.MIN_TICKER_LENGTH,
         max_length=constants.MAX_TICKER_LENGTH
     )
+
+class CostArgs(BaseModel):
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+    type: str = Field(regex=constants.TOKEN_TYPE_RE)
+    action: str = Field(regex=constants.ACTIONS_RE)

@@ -6,6 +6,7 @@ from ..chain import get_chain
 from .args import CreateArgs
 from .args import IssueArgs
 from .args import BurnArgs
+from .args import CostArgs
 from ..errors import Abort
 from .. import constants
 import config
@@ -138,5 +139,20 @@ async def fee():
     return {
         "data": chain["id"] + Protocol.encode({
             "category": constants.FEE_ADDRESS
+        })
+    }
+
+@router.post(
+    "/cost", summary="Encode cost payload"
+)
+async def cost(args: CostArgs):
+    chain = get_chain(config.chain)
+
+    return {
+        "data": chain["id"] + Protocol.encode({
+            "category": constants.COST,
+            "action": args.action,
+            "value": args.value,
+            "type": args.type
         })
     }

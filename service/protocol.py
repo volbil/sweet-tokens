@@ -42,6 +42,11 @@ class BurnValidation(CategoryValidation):
         max_length=constants.MAX_TICKER_LENGTH
     )
 
+class CostValidation(CategoryValidation):
+    value: int = Field(ge=1, le=constants.MAX_VALUE)
+    type: str = Field(regex=constants.TOKEN_TYPE_RE)
+    action: str = Field(regex=constants.ACTIONS_RE)
+
 class Protocol(object):
     @classmethod
     def encode(cls, payload):
@@ -88,6 +93,15 @@ class Protocol(object):
                     "c": data.category,
                     "t": data.ticker,
                     "a": data.value
+                }
+
+            elif category == constants.COST:
+                data = CostValidation(**payload)
+                payload = {
+                    "c": data.category,
+                    "a": data.action,
+                    "v": data.value,
+                    "t": data.type,
                 }
 
             elif category == constants.BAN:
@@ -139,31 +153,38 @@ class Protocol(object):
         # Validate the rest of the payload
         try:
             if category == constants.CREATE:
-                payload["value"] = payload.pop("a")
-                payload["ticker"] = payload.pop("t")
-                payload["decimals"] = payload.pop("d")
                 payload["reissuable"] = payload.pop("r")
+                payload["decimals"] = payload.pop("d")
+                payload["ticker"] = payload.pop("t")
+                payload["value"] = payload.pop("a")
 
                 CreateValidation(**payload)
 
             elif category == constants.ISSUE:
-                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
+                payload["value"] = payload.pop("a")
 
                 IssueValidation(**payload)
 
             elif category == constants.TRANSFER:
-                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
+                payload["value"] = payload.pop("a")
                 payload["lock"] = payload.pop("l")
 
                 TransferValidation(**payload)
 
             elif category == constants.BURN:
-                payload["value"] = payload.pop("a")
                 payload["ticker"] = payload.pop("t")
+                payload["value"] = payload.pop("a")
 
                 BurnValidation(**payload)
+
+            elif category == constants.COST:
+                payload["action"] = payload.pop("a")
+                payload["value"] = payload.pop("v")
+                payload["type"] = payload.pop("t")
+
+                CostValidation(**payload)
 
         except ValidationError as e:
             print("Failed to decode payload:", e)

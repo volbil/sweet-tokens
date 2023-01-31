@@ -5,6 +5,7 @@ from .create import process_create
 from .issue import process_issue
 from .unban import process_unban
 from .burn import process_burn
+from .cost import process_cost
 from .ban import process_ban
 from .. import constants
 from .. import consensus
@@ -74,7 +75,14 @@ async def process_decoded(
         # Validate admin
         if await consensus.validate_admin(inputs, outputs, block.height):
             await process_fee_address(
-                inputs, outputs, block, txid
+                inputs, outputs, block
+            )
+
+    if category == constants.COST:
+        # Validate cost update
+        if await consensus.validate_cost(decoded, inputs, block.height):
+            await process_cost(
+                decoded, inputs, block
             )
 
     return valid

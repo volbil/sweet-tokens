@@ -11,11 +11,15 @@ CATEGORY_BURN = "burn"
 ACTION_CREATE = "create"
 ACTION_ISSUE = "issue"
 
+ACTIONS_RE = "^create$|^issue$"
+
 # Token types
 TOKEN_ROOT = "root"
 TOKEN_SUB = "sub"
 TOKEN_UNIQUE = "unique"
 TOKEN_OWNER = "owner"
+
+TOKEN_TYPE_RE = "^root$|^sub$|^unique$"
 
 # Ticker flags
 FLAG_SUB = "/"

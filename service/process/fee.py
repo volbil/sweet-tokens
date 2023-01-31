@@ -1,7 +1,7 @@
 from ..models import FeeAddress, Address
 from ..utils import log_message
 
-async def process_fee_address(inputs, outputs, block, txid):
+async def process_fee_address(inputs, outputs, block):
     send_address_label = list(inputs)[0]
     outputs.pop(send_address_label)
     receive_address_label = list(outputs)[0]

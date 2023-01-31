@@ -32,21 +32,21 @@ async def process_block(data):
             TokenCost(**{
                 "value": chain["cost"]["create"]["root"],
                 "action": constants.ACTION_CREATE,
-                "category": constants.TOKEN_ROOT,
+                "type": constants.TOKEN_ROOT,
                 "height": block.height,
                 "block": block
             }),
             TokenCost(**{
                 "value": chain["cost"]["create"]["sub"],
                 "action": constants.ACTION_CREATE,
-                "category": constants.TOKEN_SUB,
+                "type": constants.TOKEN_SUB,
                 "height": block.height,
                 "block": block
             }),
             TokenCost(**{
                 "value": chain["cost"]["create"]["unique"],
                 "action": constants.ACTION_CREATE,
-                "category": constants.TOKEN_UNIQUE,
+                "type": constants.TOKEN_UNIQUE,
                 "height": block.height,
                 "block": block
             }),
@@ -54,21 +54,21 @@ async def process_block(data):
             TokenCost(**{
                 "value": chain["cost"]["issue"]["root"],
                 "action": constants.ACTION_ISSUE,
-                "category": constants.TOKEN_ROOT,
+                "type": constants.TOKEN_ROOT,
                 "height": block.height,
                 "block": block
             }),
             TokenCost(**{
                 "value": chain["cost"]["issue"]["sub"],
                 "action": constants.ACTION_ISSUE,
-                "category": constants.TOKEN_SUB,
+                "type": constants.TOKEN_SUB,
                 "height": block.height,
                 "block": block
             }),
             TokenCost(**{
                 "value": chain["cost"]["issue"]["unique"],
                 "action": constants.ACTION_ISSUE,
-                "category": constants.TOKEN_UNIQUE,
+                "type": constants.TOKEN_UNIQUE,
                 "height": block.height,
                 "block": block
             })

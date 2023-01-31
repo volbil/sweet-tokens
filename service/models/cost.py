@@ -19,8 +19,8 @@ class FeeAddress(Base):
 
 class TokenCost(Base):
     value = fields.DecimalField(max_digits=28, decimal_places=8)
-    category = fields.CharField(index=True, max_length=32)
     action = fields.CharField(index=True, max_length=32)
+    type = fields.CharField(index=True, max_length=32)
     height = fields.IntField()
 
     admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(

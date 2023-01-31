@@ -16,7 +16,7 @@ async def token_fee(address, value, ticker, action):
     ticker_data = regex.ticker(ticker)
 
     token_cost = await TokenCost.filter(
-        action=action, category=ticker_data["type"]
+        action=action, type=ticker_data["type"]
     ).order_by("-height").first()
 
     chain = get_chain(config.chain)
