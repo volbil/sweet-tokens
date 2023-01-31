@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from ..protocol import Protocol
 from .args import TransferArgs
 from ..consensus import regex
@@ -32,10 +32,10 @@ async def decode(payload: str = Query(min_length=2)):
     payload_raw = payload[2:]
     return Protocol.decode(payload_raw)
 
-@router.get(
+@router.post(
     "/transfer", summary="Encode transfer payload"
 )
-async def transfer(args: TransferArgs = Depends()):
+async def transfer(args: TransferArgs):
     if not regex.ticker(args.ticker)["valid"]:
         raise Abort("token", "invalid-ticker")
 
@@ -50,10 +50,10 @@ async def transfer(args: TransferArgs = Depends()):
         })
     }
 
-@router.get(
+@router.post(
     "/burn", summary="Encode burn payload"
 )
-async def burn(args: BurnArgs = Depends()):
+async def burn(args: BurnArgs):
     if not regex.ticker(args.ticker)["valid"]:
         raise Abort("token", "invalid-ticker")
 
@@ -67,10 +67,10 @@ async def burn(args: BurnArgs = Depends()):
         })
     }
 
-@router.get(
+@router.post(
     "/issue", summary="Encode issue payload"
 )
-async def issue(args: IssueArgs = Depends()):
+async def issue(args: IssueArgs):
     if not regex.ticker(args.ticker)["valid"]:
         raise Abort("token", "invalid-ticker")
 
@@ -84,10 +84,10 @@ async def issue(args: IssueArgs = Depends()):
         })
     }
 
-@router.get(
+@router.post(
     "/create", summary="Encode create payload"
 )
-async def create(args: CreateArgs = Depends()):
+async def create(args: CreateArgs):
     if not regex.ticker(args.ticker)["valid"]:
         raise Abort("token", "invalid-ticker")
 
@@ -103,7 +103,7 @@ async def create(args: CreateArgs = Depends()):
         })
     }
 
-@router.get(
+@router.post(
     "/ban", summary="Encode ban payload"
 )
 async def ban():
@@ -115,7 +115,7 @@ async def ban():
         })
     }
 
-@router.get(
+@router.post(
     "/unban", summary="Encode unban payload"
 )
 async def unban():
