@@ -9,8 +9,7 @@ class CreateArgs(BaseModel):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class TransferArgs(BaseModel):
@@ -19,8 +18,7 @@ class TransferArgs(BaseModel):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class BurnArgs(BaseModel):
@@ -28,8 +26,7 @@ class BurnArgs(BaseModel):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class IssueArgs(BaseModel):
@@ -37,6 +34,5 @@ class IssueArgs(BaseModel):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )

@@ -44,5 +44,3 @@ MAX_VALUE = 10000000000000000000
 
 # Consensus max supply
 MAX_SUPPLY = 100000000000
-
-TICKER_RE = "^[A-Z0-9_.-]*$"

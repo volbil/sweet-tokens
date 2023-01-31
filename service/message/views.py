@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 from ..protocol import Protocol
 from .args import TransferArgs
+from ..consensus import regex
 from ..chain import get_chain
 from .args import CreateArgs
 from .args import IssueArgs
 from .args import BurnArgs
+from ..errors import Abort
 from .. import constants
 import config
 
@@ -34,6 +36,9 @@ async def decode(payload: str = Query(min_length=2)):
     "/transfer", summary="Encode transfer payload"
 )
 async def transfer(args: TransferArgs = Depends()):
+    if not regex.ticker(args.ticker)["valid"]:
+        raise Abort("token", "invalid-ticker")
+
     chain = get_chain(config.chain)
 
     return {
@@ -49,6 +54,9 @@ async def transfer(args: TransferArgs = Depends()):
     "/burn", summary="Encode burn payload"
 )
 async def burn(args: BurnArgs = Depends()):
+    if not regex.ticker(args.ticker)["valid"]:
+        raise Abort("token", "invalid-ticker")
+
     chain = get_chain(config.chain)
 
     return {
@@ -63,6 +71,9 @@ async def burn(args: BurnArgs = Depends()):
     "/issue", summary="Encode issue payload"
 )
 async def issue(args: IssueArgs = Depends()):
+    if not regex.ticker(args.ticker)["valid"]:
+        raise Abort("token", "invalid-ticker")
+
     chain = get_chain(config.chain)
 
     return {
@@ -77,6 +88,9 @@ async def issue(args: IssueArgs = Depends()):
     "/create", summary="Encode create payload"
 )
 async def create(args: CreateArgs = Depends()):
+    if not regex.ticker(args.ticker)["valid"]:
+        raise Abort("token", "invalid-ticker")
+
     chain = get_chain(config.chain)
 
     return {

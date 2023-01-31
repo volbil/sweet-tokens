@@ -14,8 +14,7 @@ class CreateValidation(CategoryValidation):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class IssueValidation(CategoryValidation):
@@ -23,8 +22,7 @@ class IssueValidation(CategoryValidation):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class TransferValidation(CategoryValidation):
@@ -33,8 +31,7 @@ class TransferValidation(CategoryValidation):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class BurnValidation(CategoryValidation):
@@ -42,8 +39,7 @@ class BurnValidation(CategoryValidation):
 
     ticker: str = Field(
         min_length=constants.MIN_TICKER_LENGTH,
-        max_length=constants.MAX_TICKER_LENGTH,
-        regex=constants.TICKER_RE
+        max_length=constants.MAX_TICKER_LENGTH
     )
 
 class Protocol(object):

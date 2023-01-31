@@ -13,7 +13,8 @@ errors = {
         "failed": ["Failed to build transaction", 400],
     },
     "token": {
-        "not-found": ["Token not found", 404]
+        "not-found": ["Token not found", 404],
+        "invalid-ticker": ["Invalid ticker", 400]
     },
     "transfer": {
         "not-found": ["Transfer not found", 404]
@@ -36,17 +37,17 @@ async def abort_handler(request: Request, exc: Abort):
         status_code = 400
 
     return JSONResponse(
-        content={"error": {
+        content={
             "message": error_message, "code": error_code
-        }, "data": {}},
+        },
         status_code=status_code
     )
 
 async def validation_handler(request: Request, exc: RequestValidationError):
     exc_str = str(exc).replace("\n", " ").replace("   ", " ")
     return JSONResponse(
-        content={"error": {
+        content={
             "message": exc_str, "code": "validation_error"
-        }, "data": {}},
+        },
         status_code=422
     )
