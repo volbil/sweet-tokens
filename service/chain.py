@@ -34,7 +34,7 @@ CHAIN = {
         },
         "decimals": 4,
         "admin": {
-            "rmbc1qk0u42kmvld9ewza7w0tm2ul6cfdywrd0pcx4t6": [123, None]
+            "rmbc1qwuw7s4fsj38qhmqz2l08at429ysnq80cz3e4pd": [123, None]
         },
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis

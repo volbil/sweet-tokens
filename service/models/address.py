@@ -10,6 +10,8 @@ class Address(Base):
     owned_tokens = fields.ReverseRelation["Token"]
     balances = fields.ReverseRelation["Balance"]
 
+    admin_fee_addresses = fields.ReverseRelation["FeeAddress"]
+    admin_costs = fields.ReverseRelation["TokenCost"]
     address_unban = fields.ReverseRelation["Unban"]
     admin_unban = fields.ReverseRelation["UnBan"]
 

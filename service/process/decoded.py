@@ -1,5 +1,6 @@
 from tortoise.transactions import atomic
 from .transfer import process_transfer
+from .fee import process_fee_address
 from .create import process_create
 from .issue import process_issue
 from .unban import process_unban
@@ -53,15 +54,26 @@ async def process_decoded(
 
     if category == constants.BAN:
         # Validate admin
-        if await consensus.validate_admin(inputs, outputs, block.height, True):
+        if await consensus.validate_admin_ban(
+            inputs, outputs, block.height, True
+        ):
             await process_ban(
                 inputs, outputs, block, txid
             )
 
     if category == constants.UNBAN:
         # Validate admin
-        if await consensus.validate_admin(inputs, outputs, block.height, False):
+        if await consensus.validate_admin_ban(
+            inputs, outputs, block.height, False
+        ):
             await process_unban(
+                inputs, outputs, block, txid
+            )
+
+    if category == constants.FEE_ADDRESS:
+        # Validate admin
+        if await consensus.validate_admin(inputs, outputs, block.height):
+            await process_fee_address(
                 inputs, outputs, block, txid
             )
 

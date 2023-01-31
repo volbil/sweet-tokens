@@ -5,6 +5,10 @@ class FeeAddress(Base):
     label = fields.CharField(max_length=64)
     height = fields.IntField()
 
+    admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="admin_fee_addresses", null=True
+    )
+
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
         "models.Block", related_name="fee_addresses",
         on_delete=fields.CASCADE
@@ -18,6 +22,10 @@ class TokenCost(Base):
     category = fields.CharField(index=True, max_length=32)
     action = fields.CharField(index=True, max_length=32)
     height = fields.IntField()
+
+    admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+        "models.Address", related_name="admin_costs", null=True
+    )
 
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
         "models.Block", related_name="costs",

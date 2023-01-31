@@ -29,6 +29,8 @@ TRANSFER = 3
 BAN = 4
 UNBAN = 5
 BURN = 6
+FEE_ADDRESS = 7
+COST = 8
 
 # Consensus decimals constraints
 MIN_DECIMALS = 0

@@ -5,7 +5,7 @@ from . import constants
 import msgpack
 
 class CategoryValidation(BaseModel):
-    category: int = Field(ge=constants.CREATE, le=constants.BURN)
+    category: int = Field(ge=constants.CREATE, le=constants.COST)
 
 class CreateValidation(CategoryValidation):
     decimals: int = Field(ge=constants.MIN_DECIMALS, le=constants.MAX_DECIMALS)
@@ -97,6 +97,12 @@ class Protocol(object):
                 }
 
             elif category == constants.UNBAN:
+                data = CategoryValidation(**payload)
+                payload = {
+                    "c": data.category
+                }
+
+            elif category == constants.FEE_ADDRESS:
                 data = CategoryValidation(**payload)
                 payload = {
                     "c": data.category

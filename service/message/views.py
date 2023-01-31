@@ -17,11 +17,13 @@ router = APIRouter(prefix="/message", tags=["Messages"])
 )
 async def categories():
     return {
+        "fee_address": constants.FEE_ADDRESS,
         "transfer": constants.TRANSFER,
         "create": constants.CREATE,
         "issue": constants.ISSUE,
         "unban": constants.UNBAN,
         "burn": constants.BURN,
+        "cost": constants.COST,
         "ban": constants.BAN
     }
 
@@ -124,5 +126,17 @@ async def unban():
     return {
         "data": chain["id"] + Protocol.encode({
             "category": constants.UNBAN
+        })
+    }
+
+@router.post(
+    "/fee", summary="Encode fee address payload"
+)
+async def fee():
+    chain = get_chain(config.chain)
+
+    return {
+        "data": chain["id"] + Protocol.encode({
+            "category": constants.FEE_ADDRESS
         })
     }

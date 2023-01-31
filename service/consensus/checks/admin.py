@@ -6,6 +6,7 @@ def admin(send_address_label, height):
     chain = get_chain(config.chain)
 
     if not send_address_label in chain["admin"]:
+        log_message(f"Address {send_address_label} not in admin list")
         return False
 
     if chain["admin"][send_address_label][0] > height:
