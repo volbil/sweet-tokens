@@ -6,7 +6,9 @@ class Block(Base):
     created = NativeDatetimeField()
     height = fields.IntField()
 
+    fee_addresses = fields.ReverseRelation["FeeAddress"]
     transfers = fields.ReverseRelation["Transfer"]
+    costs = fields.ReverseRelation["TokenCost"]
     unbans = fields.ReverseRelation["Unban"]
     bans = fields.ReverseRelation["Ban"]
 

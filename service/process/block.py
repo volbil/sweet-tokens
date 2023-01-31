@@ -1,9 +1,12 @@
+from ..models import FeeAddress, TokenCost
 from tortoise.transactions import atomic
 from ..parse import parse_transaction
 from .decoded import process_decoded
 from ..protocol import Protocol
+from ..utils import log_message
 from ..chain import get_chain
 from ..models import Block
+from .. import constants
 from .. import utils
 import config
 
@@ -16,6 +19,62 @@ async def process_block(data):
         "height": data["block"]["height"],
         "hash": data["block"]["hash"]
     })
+
+    if block.height == chain["genesis"]["height"]:
+        await FeeAddress.create(**{
+            "label": chain["cost"]["address"],
+            "height": block.height,
+            "block": block
+        })
+
+        await TokenCost.bulk_create([
+            # Create
+            TokenCost(**{
+                "value": chain["cost"]["create"]["root"],
+                "action": constants.ACTION_CREATE,
+                "category": constants.TOKEN_ROOT,
+                "height": block.height,
+                "block": block
+            }),
+            TokenCost(**{
+                "value": chain["cost"]["create"]["sub"],
+                "action": constants.ACTION_CREATE,
+                "category": constants.TOKEN_SUB,
+                "height": block.height,
+                "block": block
+            }),
+            TokenCost(**{
+                "value": chain["cost"]["create"]["unique"],
+                "action": constants.ACTION_CREATE,
+                "category": constants.TOKEN_UNIQUE,
+                "height": block.height,
+                "block": block
+            }),
+            # Issue
+            TokenCost(**{
+                "value": chain["cost"]["issue"]["root"],
+                "action": constants.ACTION_ISSUE,
+                "category": constants.TOKEN_ROOT,
+                "height": block.height,
+                "block": block
+            }),
+            TokenCost(**{
+                "value": chain["cost"]["issue"]["sub"],
+                "action": constants.ACTION_ISSUE,
+                "category": constants.TOKEN_SUB,
+                "height": block.height,
+                "block": block
+            }),
+            TokenCost(**{
+                "value": chain["cost"]["issue"]["unique"],
+                "action": constants.ACTION_ISSUE,
+                "category": constants.TOKEN_UNIQUE,
+                "height": block.height,
+                "block": block
+            })
+        ])
+
+        log_message("Initialized initial cost and fee address")
 
     for index, tx_data in enumerate(data["transactions"]):
         txid = tx_data["hash"]

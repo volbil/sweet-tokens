@@ -18,7 +18,7 @@ async def process_decoded(
     if category == constants.CREATE:
         # Validate create payload
         if await consensus.validate_create(
-            decoded, inputs, block.height
+            decoded, inputs, outputs
         ):
             await process_create(
                 decoded, inputs, block, txid
@@ -27,7 +27,7 @@ async def process_decoded(
     if category == constants.ISSUE:
         # Validate issue payload
         if await consensus.validate_issue(
-            decoded, inputs, block.height
+            decoded, inputs, outputs
         ):
             await process_issue(
                 decoded, inputs, block, txid

@@ -11,21 +11,47 @@ CHAIN = {
         },
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis,
-        "protected": ["MBC", "MICROBITCOIN"]
+        "protected": ["MBC", "MICROBITCOIN"],
+        "cost": {
+            "address": None,
+            "create": {
+                "root": 10.0,
+                "sub": 10.0,
+                "unique": 10.0
+            },
+            "issue": {
+                "root": 1.0,
+                "sub": 1.0,
+                "unique": 1.0
+            }
+        }
     },
     "mbc-testnet": {
         "id": "02",
         "genesis": {
-            "hash": "cdbb477ce0c62161a45dff151142f5e7742a8f6208c1a7b0259b0cd580a68f0f",
-            "height": 113
+            "hash": "286ad56902839035c4736f0257e027e9b3f3cd9a157357fb0d981542473ad80f",
+            "height": 123
         },
         "decimals": 4,
         "admin": {
-            "rmbc1qk0u42kmvld9ewza7w0tm2ul6cfdywrd0pcx4t6": [113, None]
+            "rmbc1qk0u42kmvld9ewza7w0tm2ul6cfdywrd0pcx4t6": [123, None]
         },
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis
-        "protected": ["MBC", "MICROBITCOIN"]
+        "protected": ["MBC", "MICROBITCOIN"],
+        "cost": {
+            "address": "rmbc1quvumlwgq7z2vkfzxkm0m9xx2t6skk3yyf50k5k",
+            "create": {
+                "root": 10.0,
+                "sub": 10.0,
+                "unique": 10.0
+            },
+            "issue": {
+                "root": 1.0,
+                "sub": 1.0,
+                "unique": 1.0
+            }
+        }
     }
 }
 

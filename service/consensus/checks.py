@@ -1,6 +1,8 @@
 from ..models import Token, Balance, Address
+from ..models import FeeAddress, TokenCost
 from ..utils import log_message
 from ..chain import get_chain
+from decimal import Decimal
 from .. import constants
 from .. import utils
 from . import regex
@@ -196,3 +198,25 @@ async def banned(address_label):
         return False
 
     return address.banned
+
+async def token_fee(address, value, ticker, action):
+    fee_address = await FeeAddress.filter().order_by("-height").first()
+
+    if fee_address.label != address:
+        log_message(f"Invalid fee address {address}")
+        return False
+
+    ticker_data = regex.ticker(ticker)
+
+    token_cost = await TokenCost.filter(
+        action=action, category=ticker_data["type"]
+    ).order_by("-height").first()
+
+    chain = get_chain(config.chain)
+    fee = Decimal(utils.amount(value, chain["decimals"]))
+
+    if fee < token_cost.value:
+        log_message(f"Fee {float(fee)} is not enough to {action} token")
+        return False
+
+    return True

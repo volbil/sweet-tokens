@@ -7,6 +7,10 @@ CATEGORY_CREATE = "create"
 CATEGORY_ISSUE = "issue"
 CATEGORY_BURN = "burn"
 
+# Cost actions
+ACTION_CREATE = "create"
+ACTION_ISSUE = "issue"
+
 # Token types
 TOKEN_ROOT = "root"
 TOKEN_SUB = "sub"
