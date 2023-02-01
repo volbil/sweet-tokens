@@ -2,18 +2,18 @@ CHAIN = {
     "mbc-mainnet": {
         "id": "01",
         "genesis": {
-            "hash": "ac3be150a8dcbb2db6df462a9875c67f55e845de40cb49dc2e30f4dfab9b9115",
-            "height": 1672530
+            "hash": "02a44a2ca407d11c36d9de331c902f2574cfc0b06830584c57645f9ada4a47c5",
+            "height": 1730075
         },
         "decimals": 4,
         "admin": {
-            "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1670859, None]
+            "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1730075, None]
         },
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis,
         "protected": ["MBC", "MICROBITCOIN"],
         "cost": {
-            "address": None,
+            "address": "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n",
             "create": {
                 "root": 10.0,
                 "sub": 10.0,
