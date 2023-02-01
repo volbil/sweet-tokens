@@ -51,7 +51,7 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
 
     receive_balance.received += transfer.value
 
-    if has_lock:
+    if has_lock and decoded["lock"] > block.height:
         receive_balance.locked += transfer.value
 
         await Lock.create(**{
