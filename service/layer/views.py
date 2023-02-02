@@ -99,11 +99,11 @@ async def token_holders(
         address = await balance.address
 
         result.append({
-            "address": address.label,
-            "received": balance.received,
-            "value": balance.value,
-            "sent": balance.sent,
+            "received": utils.satoshis(balance.received, token.decimals),
+            "value": utils.satoshis(balance.value, token.decimals),
+            "sent": utils.satoshis(balance.sent, token.decimals),
             "decimals": token.decimals,
+            "address": address.label
         })
 
     return {
@@ -135,12 +135,12 @@ async def token_transfers(
         block = await transfer.block
 
         result.append({
+            "value": utils.satoshis(transfer.value, token.decimals),
             "receiver": receiver.label if receiver else None,
             "created": int(transfer.created.timestamp()),
             "sender": sender.label if sender else None,
             "category": transfer.category,
             "decimals": token.decimals,
-            "value": transfer.value,
             "height": block.height,
             "token": token.ticker,
             "txid": transfer.txid,
@@ -173,15 +173,15 @@ async def transfers_list(
         block = await transfer.block
 
         result.append({
+            "value": utils.satoshis(transfer.value, token.decimals),
             "receiver": receiver.label if receiver else None,
             "created": int(transfer.created.timestamp()),
             "sender": sender.label if sender else None,
             "category": transfer.category,
             "decimals": token.decimals,
-            "value": transfer.value,
             "height": block.height,
             "token": token.ticker,
-            "txid": transfer.txid,
+            "txid": transfer.txid
         })
 
     return {
@@ -211,12 +211,12 @@ async def transfer_info(
         block = await transfer.block
 
         result.append({
+            "value": utils.satoshis(transfer.value, token.decimals),
             "receiver": receiver.label if receiver else None,
             "created": int(transfer.created.timestamp()),
             "sender": sender.label if sender else None,
             "category": transfer.category,
             "decimals": token.decimals,
-            "value": transfer.value,
             "height": block.height,
             "token": token.ticker,
             "txid": transfer.txid,
@@ -250,13 +250,13 @@ async def address_info(
         transfers = await address.index.filter(token=token).count()
 
         result.append({
-            "received": balance.received,
+            "received": utils.satoshis(balance.received, token.decimals),
+            "value": utils.satoshis(balance.value, token.decimals),
+            "sent": utils.satoshis(balance.sent, token.decimals),
             "decimals": token.decimals,
             "address": address.label,
             "transfers": transfers,
-            "ticker": token.ticker,
-            "value": balance.value,
-            "sent": balance.sent,
+            "ticker": token.ticker
         })
 
     transfers_count = await address.index.filter().count()
@@ -301,12 +301,12 @@ async def address_transfers(
         token = await index.token
 
         result.append({
+            "value": utils.satoshis(transfer.value, token.decimals),
             "receiver": receiver.label if receiver else None,
             "created": int(transfer.created.timestamp()),
             "sender": sender.label if sender else None,
             "category": transfer.category,
             "decimals": token.decimals,
-            "value": transfer.value,
             "height": block.height,
             "token": token.ticker,
             "txid": transfer.txid,
@@ -350,12 +350,12 @@ async def address_token_transfers(
         block = await transfer.block
 
         result.append({
+            "value": utils.satoshis(transfer.value, token.decimals),
             "receiver": receiver.label if receiver else None,
             "created": int(transfer.created.timestamp()),
             "sender": sender.label if sender else None,
             "category": transfer.category,
             "decimals": token.decimals,
-            "value": transfer.value,
             "height": block.height,
             "token": token.ticker,
             "txid": transfer.txid,
