@@ -1,9 +1,13 @@
+from ..models import FeeAddress, TokenCost
 from ..models import Transfer, Address
 from ..models import Block, Token
 from fastapi import APIRouter
+from ..chain import get_chain
 from ..errors import Abort
 from fastapi import Query
+from .. import constants
 from .. import utils
+import config
 
 router = APIRouter(prefix="/layer", tags=["Layer"])
 
@@ -364,4 +368,72 @@ async def address_token_transfers(
     return {
         "pagination": pagination,
         "list": result
+    }
+
+
+@router.get(
+    "/params", summary="Layer params"
+)
+async def params():
+    chain = get_chain(config.chain)
+
+    latest = await Block.filter().order_by("-height").limit(1).first()
+
+    fee_address = await FeeAddress.filter().order_by("-height").first()
+
+    create_root = await TokenCost.filter(
+        action=constants.ACTION_CREATE, type=constants.TOKEN_ROOT
+    ).order_by("-height").first()
+
+    create_sub = await TokenCost.filter(
+        action=constants.ACTION_CREATE, type=constants.TOKEN_SUB
+    ).order_by("-height").first()
+
+    create_unique = await TokenCost.filter(
+        action=constants.ACTION_CREATE, type=constants.TOKEN_UNIQUE
+    ).order_by("-height").first()
+
+    issue_root = await TokenCost.filter(
+        action=constants.ACTION_ISSUE, type=constants.TOKEN_ROOT
+    ).order_by("-height").first()
+
+    issue_sub = await TokenCost.filter(
+        action=constants.ACTION_ISSUE, type=constants.TOKEN_SUB
+    ).order_by("-height").first()
+
+    issue_unique = await TokenCost.filter(
+        action=constants.ACTION_ISSUE, type=constants.TOKEN_UNIQUE
+    ).order_by("-height").first()
+
+    admin = []
+
+    for address in chain["admin"]:
+        if chain["admin"][address][0] > latest.height:
+            continue
+
+        if chain["admin"][
+            address
+        ][1] and chain["admin"][
+            address
+        ][1] < latest.height:
+            continue
+
+        admin.append(address)
+
+    return {
+        "chain": config.chain,
+        "fee_address": fee_address.label,
+        "cost": {
+            "create": {
+                "root": utils.satoshis(create_root.value, chain["decimals"]),
+                "sub": utils.satoshis(create_sub.value, chain["decimals"]),
+                "unique": utils.satoshis(create_unique.value, chain["decimals"]),
+            },
+            "issue": {
+                "root": utils.satoshis(issue_root.value, chain["decimals"]),
+                "sub": utils.satoshis(issue_sub.value, chain["decimals"]),
+                "unique": utils.satoshis(issue_unique.value, chain["decimals"]),
+            }
+        },
+        "admin": admin
     }

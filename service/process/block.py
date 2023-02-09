@@ -10,6 +10,8 @@ from .. import constants
 from .. import utils
 import config
 
+SNAP_TXID = "3426ccad3017e14a4ab6efddaa44cb31beca67a86c82f63de18705f1b6de88df"
+
 @atomic()
 async def process_block(data):
     chain = get_chain(config.chain)
@@ -86,6 +88,9 @@ async def process_block(data):
             continue
 
         for input in tx_data["inputs"]:
+            if input["output_txid"] == SNAP_TXID:
+                continue
+
             input_tx_data = await parse_transaction(input["output_txid"])
             input_output = input_tx_data["outputs"][input["output_index"]]
 
