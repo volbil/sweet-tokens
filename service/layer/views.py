@@ -431,8 +431,7 @@ async def params():
             },
             "issue": {
                 "root": utils.satoshis(issue_root.value, chain["decimals"]),
-                "sub": utils.satoshis(issue_sub.value, chain["decimals"]),
-                "unique": utils.satoshis(issue_unique.value, chain["decimals"]),
+                "sub": utils.satoshis(issue_sub.value, chain["decimals"])
             }
         },
         "admin": admin
