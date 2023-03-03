@@ -401,10 +401,6 @@ async def params():
         action=constants.ACTION_ISSUE, type=constants.TOKEN_SUB
     ).order_by("-height").first()
 
-    issue_unique = await TokenCost.filter(
-        action=constants.ACTION_ISSUE, type=constants.TOKEN_UNIQUE
-    ).order_by("-height").first()
-
     admin = []
 
     for address in chain["admin"]:

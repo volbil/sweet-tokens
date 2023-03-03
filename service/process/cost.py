@@ -13,7 +13,7 @@ async def process_cost(decoded, inputs, block):
 
     value = amount(decoded["value"], chain["decimals"])
 
-    TokenCost(**{
+    await TokenCost.create(**{
         "action": decoded["action"],
         "type": decoded["type"],
         "height": block.height,
