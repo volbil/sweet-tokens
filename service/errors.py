@@ -14,7 +14,7 @@ errors = {
     },
     "token": {
         "not-found": ["Token not found", 404],
-        "invalid-ticker": ["Invalid ticker", 400]
+        "invalid-ticker": ["Invalid ticker", 400],
     },
     "transfer": {
         "not-found": ["Transfer not found", 404]

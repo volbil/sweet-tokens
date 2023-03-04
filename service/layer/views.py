@@ -27,21 +27,27 @@ async def latest():
     "/tokens", summary="Tokens list"
 )
 async def tokens_list(
-    page: int = Query(default=1, ge=1)
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    type: str = Query(default=None)
 ):
-    total = await Token.filter().count()
+    query = Token.filter()
+
+    if type:
+        query = query.filter(type=type)
+
+    total = await query.count()
     limit, offset, size = utils.pagination(page)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
-    tokens = await Token.filter().order_by(
-        "created"
+    tokens = await query.order_by(
+        "-created"
     ).limit(limit).offset(offset)
 
     for token in tokens:
         holders = await token.balances.filter(value__gt=0).count()
         transfers = await token.transfers.filter().count()
-        # owner = await token.owner
 
         result.append({
             "reissuable": token.reissuable,
@@ -49,7 +55,7 @@ async def tokens_list(
             "transfers": transfers,
             "supply": token.supply,
             "ticker": token.ticker,
-            # "owner": owner.label,
+            "type": token.type,
             "holders": holders
         })
 
@@ -69,7 +75,6 @@ async def token_info(
     
     holders = await token.balances.filter(value__gt=0).count()
     transfers = await token.transfers.filter().count()
-    # owner = await token.owner
 
     return {
         "reissuable": token.reissuable,
@@ -77,7 +82,7 @@ async def token_info(
         "transfers": transfers,
         "supply": token.supply,
         "ticker": token.ticker,
-        # "owner": owner.label,
+        "type": token.type,
         "holders": holders
     }
 
