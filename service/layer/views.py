@@ -37,7 +37,7 @@ async def tokens_list(
         query = query.filter(type=type)
 
     total = await query.count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
