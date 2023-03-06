@@ -90,13 +90,14 @@ async def token_info(
     "/token/{ticker}/holders", summary="Token holders"
 )
 async def token_holders(
-    ticker: str, page: int = Query(default=1, ge=1)
+    ticker: str, page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
     total = await token.balances.filter(value__gt=0).count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
@@ -124,13 +125,14 @@ async def token_holders(
     "/token/{ticker}/transfers", summary="Token transfers"
 )
 async def token_transfers(
-    ticker: str, page: int = Query(default=1, ge=1)
+    ticker: str, page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     if not (token := await Token.filter(ticker=ticker).first()):
         raise Abort("token", "not-found")
     
     total = await token.transfers.filter().count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
@@ -164,10 +166,11 @@ async def token_transfers(
     "/transfers", summary="Transfers list"
 )
 async def transfers_list(
-    page: int = Query(default=1, ge=1)
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     total = await Transfer.filter().count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
@@ -202,10 +205,11 @@ async def transfers_list(
     "/tx/{txid}", summary="Transaction transfers"
 )
 async def transfer_info(
-    txid: str, page: int = Query(default=1, ge=1)
+    txid: str, page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     total = await Transfer.filter(txid=txid).count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
     result = []
 
@@ -283,7 +287,8 @@ async def address_info(
     "/address/{label}/transfers", summary="Address transfers"
 )
 async def address_transfers(
-    label: str, page: int = Query(default=1, ge=1)
+    label: str, page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     result = []
 
@@ -294,7 +299,7 @@ async def address_transfers(
         }
 
     total = await address.index.filter().count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
 
     index_list = await address.index.filter().order_by(
@@ -330,7 +335,8 @@ async def address_transfers(
     "/address/{label}/transfers/{ticker}", summary="Address token transfers"
 )
 async def address_token_transfers(
-    label: str, ticker: str, page: int = Query(default=1, ge=1)
+    label: str, ticker: str, page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100)
 ):
     result = []
 
@@ -344,7 +350,7 @@ async def address_token_transfers(
         raise Abort("token", "not-found")
 
     total = await address.index.filter(token=token).count()
-    limit, offset, size = utils.pagination(page)
+    limit, offset, size = utils.pagination(page, size)
     pagination = utils.pagination_dict(total, page, size)
 
     index_list = await address.index.filter(token=token).order_by(
