@@ -113,7 +113,8 @@ async def token_holders(
             "value": utils.satoshis(balance.value, token.decimals),
             "sent": utils.satoshis(balance.sent, token.decimals),
             "decimals": token.decimals,
-            "address": address.label
+            "address": address.label,
+            "ticker": token.ticker
         })
 
     return {
