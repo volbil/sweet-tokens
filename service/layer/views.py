@@ -16,11 +16,17 @@ router = APIRouter(prefix="/layer", tags=["Layer"])
 )
 async def latest():
     latest = await Block.filter().order_by("-height").limit(1).first()
+    transfers = await Transfer.filter().count()
+    tokens = await Token.filter().count()
 
     return {
         "created": int(latest.created.timestamp()),
         "height": latest.height,
         "hash": latest.hash,
+        "stats": {
+            "transfers": transfers,
+            "tokens": tokens
+        }
     }
 
 @router.get(
