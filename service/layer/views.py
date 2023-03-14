@@ -1,6 +1,6 @@
+from ..models import Block, Token, Balance
 from ..models import FeeAddress, TokenCost
 from ..models import Transfer, Address
-from ..models import Block, Token
 from fastapi import APIRouter
 from ..chain import get_chain
 from ..errors import Abort
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/layer", tags=["Layer"])
 )
 async def latest():
     latest = await Block.filter().order_by("-height").limit(1).first()
+    holders = await Balance.filter(value__gt=0).count()
     transfers = await Transfer.filter().count()
     tokens = await Token.filter().count()
 
@@ -25,6 +26,7 @@ async def latest():
         "hash": latest.hash,
         "stats": {
             "transfers": transfers,
+            "holders": holders,
             "tokens": tokens
         }
     }
