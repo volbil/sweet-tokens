@@ -58,10 +58,10 @@ async def tokens_list(
         transfers = await token.transfers.filter().count()
 
         result.append({
+            "supply": utils.satoshis(token.supply, token.decimals),
             "reissuable": token.reissuable,
             "decimals": token.decimals,
             "transfers": transfers,
-            "supply": token.supply,
             "ticker": token.ticker,
             "type": token.type,
             "holders": holders
@@ -85,10 +85,10 @@ async def token_info(
     transfers = await token.transfers.filter().count()
 
     return {
+        "supply": utils.satoshis(token.supply, token.decimals),
         "reissuable": token.reissuable,
         "decimals": token.decimals,
         "transfers": transfers,
-        "supply": token.supply,
         "ticker": token.ticker,
         "type": token.type,
         "holders": holders
