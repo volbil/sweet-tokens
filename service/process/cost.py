@@ -20,7 +20,7 @@ async def process_cost(decoded, inputs, block):
         "admin": send_address,
         "value": value,
         "block": block
-    }),
+    })
 
     admin = send_address_label
     token_type = decoded["type"]

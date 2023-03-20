@@ -36,7 +36,7 @@ async def validate_issue(decoded, inputs, outputs):
     # Check if fee is enough for given action
     if not await checks.token_fee(
         receive_address, outputs[receive_address],
-        decoded["ticker"], constants.ACTION_CREATE
+        decoded["ticker"], constants.ACTION_ISSUE
     ):
         return False
 

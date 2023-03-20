@@ -6,6 +6,20 @@ from ..chain import get_chain
 from ..models import Block
 import config
 
+async def emergency_reorg(reorg_height):
+    latest = await Block.filter().order_by("-height").limit(1).first()
+
+    # Process chain reorgs
+    while reorg_height < latest.height:
+        log_message(f"Found reorg at height #{latest.height}")
+
+        reorg_block = latest
+        latest = await Block.filter(
+            height=(latest.height - 1)
+        ).first()
+
+        await process_reorg(reorg_block)
+
 async def sync_chain():
     # Init genesis
     if not (await Block.filter().order_by("-height").limit(1).first()):
