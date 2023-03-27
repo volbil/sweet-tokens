@@ -66,13 +66,6 @@ async def process_block(data):
                 "type": constants.TOKEN_SUB,
                 "height": block.height,
                 "block": block
-            }),
-            TokenCost(**{
-                "value": chain["cost"]["issue"]["unique"],
-                "action": constants.ACTION_ISSUE,
-                "type": constants.TOKEN_UNIQUE,
-                "height": block.height,
-                "block": block
             })
         ])
 
