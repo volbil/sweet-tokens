@@ -46,6 +46,7 @@ async def transfer(args: TransferArgs):
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.TRANSFER,
             "ticker": args.ticker,
             "value": args.value,
@@ -64,6 +65,7 @@ async def burn(args: BurnArgs):
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.BURN,
             "ticker": args.ticker,
             "value": args.value
@@ -81,6 +83,7 @@ async def issue(args: IssueArgs):
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.ISSUE,
             "value": args.value,
             "ticker": args.ticker
@@ -98,6 +101,7 @@ async def create(args: CreateArgs):
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.CREATE,
             "reissuable": args.reissuable,
             "decimals": args.decimals,
@@ -114,6 +118,7 @@ async def ban():
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.BAN
         })
     }
@@ -126,6 +131,7 @@ async def unban():
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.UNBAN
         })
     }
@@ -138,6 +144,7 @@ async def fee():
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.FEE_ADDRESS
         })
     }
@@ -150,6 +157,7 @@ async def cost(args: CostArgs):
 
     return {
         "data": chain["id"] + Protocol.encode({
+            "version": constants.DEFAULT_VERSION,
             "category": constants.COST,
             "action": args.action,
             "value": args.value,

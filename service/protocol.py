@@ -161,7 +161,11 @@ class Protocol:
         if "c" not in payload:
             return None
 
+        if "m" not in payload:
+            return None
+
         payload["category"] = payload.pop("c")
+        payload["version"] = payload.pop("m")
 
         # Validate category
         try:
@@ -189,6 +193,7 @@ class Protocol:
 
             elif category == constants.TRANSFER:
                 payload["value"] = bytes_to_int(payload.pop("v"))
+                payload["version"] = payload.pop("m")
                 payload["ticker"] = payload.pop("t")
                 payload["lock"] = payload.pop("l")
 
