@@ -2,8 +2,8 @@ CHAIN = {
     "mbc-mainnet": {
         "id": "01",
         "genesis": {
-            "hash": "34eca204ff8536fd5d3ca4c7e993394b4904af582fe3f9d95293e3cb7cab76a8",
-            "height": 1806960
+            "hash": "d7f7df92b379ce61a57a067f5597839d390798464f0c126f4e25c55087428136",
+            "height": 1807100
         },
         "decimals": 4,
         "admin": {
