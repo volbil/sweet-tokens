@@ -38,6 +38,7 @@ async def process_create(decoded, inputs, block, txid):
 
     transfer = await Transfer.create(**{
         "category": constants.CATEGORY_CREATE,
+        "version": decoded["version"],
         "created": block.created,
         "receiver": address,
         "has_lock": False,
@@ -84,6 +85,7 @@ async def process_create(decoded, inputs, block, txid):
 
         transfer_owner = await Transfer.create(**{
             "category": constants.CATEGORY_CREATE,
+            "version": decoded["version"],
             "created": block.created,
             "token": token_owner,
             "receiver": address,

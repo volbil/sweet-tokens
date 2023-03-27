@@ -1,6 +1,10 @@
 # System version
 VERSION = "0.2.1"
 
+DEFAULT_VERSION = 1
+MIN_VERSION = 1
+MAX_VERSION = 1
+
 # Transfer categories
 CATEGORY_TRANSFER = "transfer"
 CATEGORY_CREATE = "create"
@@ -46,7 +50,7 @@ MAX_TICKER_LENGTH = 32
 
 # Consensus value constraints
 MIN_VALUE = 1
-MAX_VALUE = 10000000000000000000
+MAX_VALUE = 10_000_000_000_000_000_000_000
 
 # Consensus max supply
-MAX_SUPPLY = 100000000000
+MAX_SUPPLY = 100_000_000_000_000

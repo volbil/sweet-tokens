@@ -7,6 +7,7 @@ class Transfer(Base):
     txid = fields.CharField(index=True, max_length=64)
     has_lock = fields.BooleanField()
     created = NativeDatetimeField()
+    version = fields.IntField()
 
     block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
         "models.Block", related_name="transfers",

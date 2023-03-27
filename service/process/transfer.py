@@ -36,6 +36,7 @@ async def process_transfer(decoded, inputs, outputs, block, txid):
 
     transfer = await Transfer.create(**{
         "category": constants.CATEGORY_TRANSFER,
+        "version": decoded["version"],
         "receiver": receive_address,
         "created": block.created,
         "sender": send_address,

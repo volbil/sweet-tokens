@@ -4,7 +4,20 @@ from typing import Union
 from . import constants
 import msgpack
 
+def int_to_bytes(value: int):
+    try:
+        return value.to_bytes(10, "big")
+    except:
+        return None
+
+def bytes_to_int(value: bytes):
+    try:
+        return int.from_bytes(value, "big")
+    except:
+        return None
+
 class CategoryValidation(BaseModel):
+    version: int = Field(ge=constants.MIN_VERSION, le=constants.MAX_VERSION)
     category: int = Field(ge=constants.CREATE, le=constants.COST)
 
 class CreateValidation(CategoryValidation):
@@ -47,7 +60,7 @@ class CostValidation(CategoryValidation):
     type: str = Field(regex=constants.TOKEN_TYPE_RE)
     action: str = Field(regex=constants.ACTIONS_RE)
 
-class Protocol(object):
+class Protocol:
     @classmethod
     def encode(cls, payload):
         # Validate category
@@ -63,63 +76,71 @@ class Protocol(object):
             if category == constants.CREATE:
                 data = CreateValidation(**payload)
                 payload = {
+                    "v": int_to_bytes(data.value),
                     "r": data.reissuable,
                     "d": data.decimals,
                     "c": data.category,
-                    "a": data.value,
+                    "m": data.version,
                     "t": data.ticker
                 }
 
             elif category == constants.ISSUE:
                 data = IssueValidation(**payload)
                 payload = {
+                    "v": int_to_bytes(data.value),
                     "c": data.category,
-                    "a": data.value,
+                    "m": data.version,
                     "t": data.ticker
                 }
 
             elif category == constants.TRANSFER:
                 data = TransferValidation(**payload)
                 payload = {
+                    "v": int_to_bytes(data.value),
                     "c": data.category,
+                    "m": data.version,
                     "t": data.ticker,
-                    "a": data.value,
                     "l": data.lock
                 }
 
             elif category == constants.BURN:
                 data = BurnValidation(**payload)
                 payload = {
+                    "v": int_to_bytes(data.value),
                     "c": data.category,
-                    "t": data.ticker,
-                    "a": data.value
+                    "m": data.version,
+                    "t": data.ticker
                 }
 
             elif category == constants.COST:
                 data = CostValidation(**payload)
                 payload = {
+                    "v": int_to_bytes(data.value),
                     "c": data.category,
+                    "m": data.version,
                     "a": data.action,
-                    "v": data.value,
                     "t": data.type,
                 }
 
             elif category == constants.BAN:
                 data = CategoryValidation(**payload)
                 payload = {
-                    "c": data.category
+                    "c": data.category,
+                    "m": data.version
                 }
 
             elif category == constants.UNBAN:
                 data = CategoryValidation(**payload)
                 payload = {
-                    "c": data.category
+                    "c": data.category,
+                    "m": data.version
                 }
 
             elif category == constants.FEE_ADDRESS:
                 data = CategoryValidation(**payload)
                 payload = {
-                    "c": data.category
+                    "c": data.category,
+                    "m": data.version
                 }
 
         except ValidationError as e:
@@ -153,35 +174,35 @@ class Protocol(object):
         # Validate the rest of the payload
         try:
             if category == constants.CREATE:
+                payload["value"] = bytes_to_int(payload.pop("v"))
                 payload["reissuable"] = payload.pop("r")
                 payload["decimals"] = payload.pop("d")
                 payload["ticker"] = payload.pop("t")
-                payload["value"] = payload.pop("a")
 
                 CreateValidation(**payload)
 
             elif category == constants.ISSUE:
+                payload["value"] = bytes_to_int(payload.pop("v"))
                 payload["ticker"] = payload.pop("t")
-                payload["value"] = payload.pop("a")
 
                 IssueValidation(**payload)
 
             elif category == constants.TRANSFER:
+                payload["value"] = bytes_to_int(payload.pop("v"))
                 payload["ticker"] = payload.pop("t")
-                payload["value"] = payload.pop("a")
                 payload["lock"] = payload.pop("l")
 
                 TransferValidation(**payload)
 
             elif category == constants.BURN:
+                payload["value"] = bytes_to_int(payload.pop("v"))
                 payload["ticker"] = payload.pop("t")
-                payload["value"] = payload.pop("a")
 
                 BurnValidation(**payload)
 
             elif category == constants.COST:
+                payload["value"] = bytes_to_int(payload.pop("v"))
                 payload["action"] = payload.pop("a")
-                payload["value"] = payload.pop("v")
                 payload["type"] = payload.pop("t")
 
                 CostValidation(**payload)

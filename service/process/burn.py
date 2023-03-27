@@ -17,6 +17,7 @@ async def process_burn(decoded, inputs, block, txid):
 
     transfer = await Transfer.create(**{
         "category": constants.CATEGORY_BURN,
+        "version": decoded["version"],
         "created": block.created,
         "sender": send_address,
         "has_lock": False,

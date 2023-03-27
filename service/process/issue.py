@@ -28,6 +28,7 @@ async def process_issue(decoded, inputs, block, txid):
 
     transfer = await Transfer.create(**{
         "category": constants.CATEGORY_ISSUE,
+        "version": decoded["version"],
         "created": block.created,
         "receiver": address,
         "has_lock": False,
