@@ -1,18 +1,24 @@
-from .base import Base, NativeDatetimeField
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import Numeric, String
+from datetime import datetime
+from .base import Base
+
 
 class Token(Base):
-    supply = fields.DecimalField(max_digits=28, decimal_places=8)
-    ticker = fields.CharField(unique=True, max_length=32)
-    reissuable = fields.BooleanField(default=False)
-    type = fields.CharField(max_length=32)
-    created = NativeDatetimeField()
-    decimals = fields.IntField()
+    __tablename__ = "service_tokens"
 
-    transfers = fields.ReverseRelation["Transfer"]
-    balances = fields.ReverseRelation["Balance"]
-    index = fields.ReverseRelation["Index"]
-    locks = fields.ReverseRelation["Lock"]
+    ticker: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    type: Mapped[str] = mapped_column(String(32), index=True)
+    supply: Mapped[Numeric] = mapped_column(Numeric(28, 8))
+    reissuable: Mapped[bool] = mapped_column(default=False)
+    created: Mapped[datetime]
+    decimals: Mapped[int]
 
-    class Meta:
-        table = "service_tokens"
+    balances: Mapped[list["Balance"]] = relationship(
+        back_populates="token", viewonly=True
+    )
+
+    # transfers = fields.ReverseRelation["Transfer"]
+    # index = fields.ReverseRelation["Index"]
+    # locks = fields.ReverseRelation["Lock"]

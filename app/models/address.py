@@ -1,25 +1,40 @@
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String
 from .base import Base
 
+
 class Address(Base):
-    label = fields.CharField(index=True, unique=True, max_length=64)
-    banned = fields.BooleanField(default=False)
+    __tablename__ = "service_addresses"
 
-    transfers_receive = fields.ReverseRelation["Transfer"]
-    transfers_send = fields.ReverseRelation["Transfer"]
-    owned_tokens = fields.ReverseRelation["Token"]
-    balances = fields.ReverseRelation["Balance"]
+    label: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    banned: Mapped[bool] = mapped_column(default=False)
 
-    admin_fee_addresses = fields.ReverseRelation["FeeAddress"]
-    admin_costs = fields.ReverseRelation["TokenCost"]
-    address_unban = fields.ReverseRelation["Unban"]
-    admin_unban = fields.ReverseRelation["UnBan"]
+    balances: Mapped[list["Balance"]] = relationship(
+        back_populates="address", viewonly=True
+    )
 
-    address_ban = fields.ReverseRelation["Ban"]
-    admin_ban = fields.ReverseRelation["Ban"]
+    address_ban: Mapped[list["Ban"]] = relationship(
+        back_populates="address", viewonly=True
+    )
 
-    index = fields.ReverseRelation["Index"]
-    locks = fields.ReverseRelation["Lock"]
+    address_unban: Mapped[list["Unban"]] = relationship(
+        back_populates="address", viewonly=True
+    )
 
-    class Meta:
-        table = "service_addresses"
+    admin_ban: Mapped[list["Ban"]] = relationship(
+        back_populates="admin", viewonly=True
+    )
+
+    admin_unban: Mapped[list["Unban"]] = relationship(
+        back_populates="admin", viewonly=True
+    )
+
+    # transfers_receive = fields.ReverseRelation["Transfer"]
+    # transfers_send = fields.ReverseRelation["Transfer"]
+    # owned_tokens = fields.ReverseRelation["Token"]
+
+    # admin_fee_addresses = fields.ReverseRelation["FeeAddress"]
+    # admin_costs = fields.ReverseRelation["TokenCost"]
+
+    # index = fields.ReverseRelation["Index"]
+    # locks = fields.ReverseRelation["Lock"]

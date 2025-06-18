@@ -1,21 +1,35 @@
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy import String
 from .base import Base
 
+
 class Ban(Base):
-    txid = fields.CharField(index=True, unique=True, max_length=64)
+    __tablename__ = "service_bans"
 
-    block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
-        "models.Block", related_name="bans",
-        on_delete=fields.CASCADE
+    txid: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+
+    address_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
     )
 
-    admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="admin_ban"
+    admin_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
     )
 
-    address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="address_ban"
+    block_id = mapped_column(
+        ForeignKey("service_blocks.id", ondelete="CASCADE"), index=True
     )
 
-    class Meta:
-        table = "service_bans"
+    address: Mapped["Address"] = relationship(
+        back_populates="address_ban", foreign_keys=[address_id]
+    )
+
+    admin: Mapped["Address"] = relationship(
+        back_populates="admin_ban", foreign_keys=[admin_id]
+    )
+
+    block: Mapped["Block"] = relationship(
+        back_populates="bans", foreign_keys=[block_id]
+    )

@@ -1,21 +1,30 @@
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy import Numeric
 from .base import Base
 
+
 class Balance(Base):
-    received = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
-    locked = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
-    value = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
-    sent = fields.DecimalField(max_digits=28, decimal_places=8, default=0)
+    __tablename__ = "service_balances"
 
-    address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="balances",
-        on_delete=fields.CASCADE
+    received: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
+    locked: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
+    value: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
+    sent: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
+
+    address_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
     )
 
-    token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-        "models.Token", related_name="balances",
-        on_delete=fields.CASCADE
+    token_id = mapped_column(
+        ForeignKey("service_tokens.id", ondelete="CASCADE"), index=True
     )
 
-    class Meta:
-        table = "service_balances"
+    address: Mapped["Address"] = relationship(
+        back_populates="balances", foreign_keys=[address_id]
+    )
+
+    token: Mapped["Token"] = relationship(
+        back_populates="balances", foreign_keys=[token_id]
+    )

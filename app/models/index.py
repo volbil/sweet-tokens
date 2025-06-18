@@ -1,23 +1,25 @@
-from .base import Base, NativeDatetimeField
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String
+from datetime import datetime
+from .base import Base
+
 
 class Index(Base):
-    category = fields.CharField(index=True, max_length=32)
-    created = NativeDatetimeField()
+    __tablename__ = "service_index"
 
-    address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-        "models.Address", related_name="index"
-    )
+    category: Mapped[str] = mapped_column(String(32), index=True)
+    created: Mapped[datetime]
 
-    transfer: fields.ForeignKeyRelation["Transfer"] = fields.ForeignKeyField(
-        "models.Transfer", related_name="index",
-        on_delete=fields.CASCADE
-    )
+    # address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
+    #     "models.Address", related_name="index"
+    # )
 
-    token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-        "models.Token", related_name="index",
-        on_delete=fields.CASCADE
-    )
+    # transfer: fields.ForeignKeyRelation["Transfer"] = fields.ForeignKeyField(
+    #     "models.Transfer", related_name="index",
+    #     on_delete=fields.CASCADE
+    # )
 
-    class Meta:
-        table = "service_index"
+    # token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
+    #     "models.Token", related_name="index",
+    #     on_delete=fields.CASCADE
+    # )

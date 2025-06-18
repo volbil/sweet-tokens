@@ -1,16 +1,24 @@
-from .base import Base, NativeDatetimeField
-from tortoise import fields
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String
+from datetime import datetime
+from .base import Base
+
 
 class Block(Base):
-    hash = fields.CharField(max_length=64, index=True)
-    created = NativeDatetimeField()
-    height = fields.IntField()
+    __tablename__ = "service_blocks"
 
-    fee_addresses = fields.ReverseRelation["FeeAddress"]
-    transfers = fields.ReverseRelation["Transfer"]
-    costs = fields.ReverseRelation["TokenCost"]
-    unbans = fields.ReverseRelation["Unban"]
-    bans = fields.ReverseRelation["Ban"]
+    hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    height: Mapped[int] = mapped_column(index=True)
+    created: Mapped[datetime]
 
-    class Meta:
-        table = "service_blocks"
+    bans: Mapped[list["Ban"]] = relationship(
+        back_populates="block", viewonly=True
+    )
+
+    unbans: Mapped[list["Unban"]] = relationship(
+        back_populates="block", viewonly=True
+    )
+
+    # fee_addresses = fields.ReverseRelation["FeeAddress"]
+    # transfers = fields.ReverseRelation["Transfer"]
+    # costs = fields.ReverseRelation["TokenCost"]

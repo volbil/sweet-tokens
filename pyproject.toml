@@ -10,7 +10,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi (>=0.115.12,<0.116.0)",
-    "sqlalchemy (>=2.0.41,<3.0.0)"
+    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "alembic (>=1.16.1,<2.0.0)"
 ]
 
 
@@ -21,3 +22,13 @@ package-mode = false
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+line-length = 80
+exclude = [".venv", "venv", "alembic"]
+
+[tool.ruff.lint]
+extend-ignore = [
+    "F821",  # Disable checks for annotated SQLAlchemy relations 
+]
