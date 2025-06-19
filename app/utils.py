@@ -1,9 +1,21 @@
+from functools import lru_cache
+from dynaconf import Dynaconf
 from datetime import datetime
 from decimal import Decimal
 import aiohttp
-import config
 import json
 import math
+
+
+@lru_cache()
+def get_settings():
+    """Returns lru cached system settings"""
+
+    return Dynaconf(
+        settings_files=["settings.toml"],
+        default_env="default",
+        environments=True,
+    )
 
 
 # Helper function for toroise pagination

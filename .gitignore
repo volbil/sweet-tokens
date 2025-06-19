@@ -2,11 +2,29 @@
 __pycache__/
 venv/*
 config.py
+playground.py
+alembic.ini
+settings.toml
+.venv
+
+# Linters
+.pytest_cache
+.ruff_cache
 
 # misc
+lemur_users_export.json
+lemur-users.xlsx
+app/static/deepstate.json
 .DS_STORE
 *.db
-*/**/*.db
+
+# PyRight
+pyrightconfig.json
 
 # PyCharm
 .idea
+
+# VsCode
+.vscode/*
+
+.profile_info

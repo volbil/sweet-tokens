@@ -8,6 +8,7 @@ from .block import Block
 from .unban import Unban
 from .index import Index
 from .lock import Lock
+from .base import Base
 from .ban import Ban
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "Unban",
     "Index",
     "Lock",
+    "Base",
     "Ban",
 ]

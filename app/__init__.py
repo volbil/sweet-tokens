@@ -1,4 +1,3 @@
-from tortoise.contrib.fastapi import register_tortoise
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -6,7 +5,7 @@ import fastapi.openapi.utils as fu
 from fastapi import FastAPI
 from . import constants
 from . import errors
-import config
+
 
 def create_app() -> FastAPI:
     fu.validation_error_response_definition = errors.ErrorResponse.schema()
@@ -16,9 +15,7 @@ def create_app() -> FastAPI:
             return app.openapi_schema
 
         openapi_schema = get_openapi(
-            version=constants.VERSION,
-            title="Token layer",
-            routes=app.routes
+            version=constants.VERSION, title="Token layer", routes=app.routes
         )
 
         app.openapi_schema = openapi_schema
@@ -48,11 +45,5 @@ def create_app() -> FastAPI:
     app.include_router(message)
     app.include_router(system)
     app.include_router(layer)
-
-    register_tortoise(
-        app, config=config.tortoise,
-        add_exception_handlers=True,
-        generate_schemas=True,
-    )
 
     return app

@@ -1,0 +1,3 @@
+[default]
+    [default.database]
+    endpoint = "postgresql+asyncpg://dev:password@localhost:5432/database"
