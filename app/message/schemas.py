@@ -44,5 +44,5 @@ class IssueArgs(CustomModel):
 
 class CostArgs(CustomModel):
     value: int = Field(ge=1, le=constants.MAX_VALUE)
-    type: str = Field(regex=constants.TOKEN_TYPE_RE)
-    action: str = Field(regex=constants.ACTIONS_RE)
+    type: str = Field(pattern=constants.TOKEN_TYPE_RE)
+    action: str = Field(pattern=constants.ACTIONS_RE)

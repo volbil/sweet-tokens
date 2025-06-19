@@ -1,8 +1,11 @@
 from app.utils import make_request, log_message, get_settings
 from app.process import process_block, process_reorg
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import sessionmanager
 from app.process import process_locks
 from app.parse import parse_block
 from app.chain import get_chain
+from sqlalchemy import select
 from app.models import Block
 
 
@@ -19,13 +22,14 @@ async def emergency_reorg(reorg_height):
         await process_reorg(reorg_block)
 
 
-async def sync_chain():
-    settings = get_settings()
-
+async def sync_chain(session: AsyncSession):
     # Init genesis
-    if not (await Block.filter().order_by("-height").limit(1).first()):
+    if not await session.scalar(
+        select(Block).order_by(Block.height.desc()).limit(1)
+    ):
         log_message("Adding genesis block to db")
 
+        settings = get_settings()
         chain = get_chain(settings.general.chain)
 
         block_data = await parse_block(chain["genesis"]["height"])
@@ -34,17 +38,21 @@ async def sync_chain():
             log_message("Genesis hash missmatch")
             raise
 
-        await process_block(block_data)
+        await process_block(session, block_data)
 
-    latest = await Block.filter().order_by("-height").limit(1).first()
     chain_data = await make_request("getblockchaininfo")
+    latest = await session.scalar(
+        select(Block).order_by(Block.height.desc()).limit(1)
+    )
 
     # Process chain reorgs
     while latest.hash != await make_request("getblockhash", [latest.height]):
         log_message(f"Found reorg at height #{latest.height}")
 
         reorg_block = latest
-        latest = await Block.filter(height=(latest.height - 1)).first()
+        latest = await session.scalar(
+            select(Block).filter(Block.height == latest.height - 1)
+        )
 
         await process_reorg(reorg_block)
 
@@ -60,10 +68,15 @@ async def sync_chain():
 
             block_data = await parse_block(height)
 
-            await process_block(block_data)
+            await process_block(session, block_data)
 
-            await process_locks(height)
+            await process_locks(session, height)
 
         except KeyboardInterrupt:
             log_message(f"Keyboard interrupt")
             break
+
+
+async def run_sync_chain():
+    async with sessionmanager.session() as session:
+        await sync_chain(session)

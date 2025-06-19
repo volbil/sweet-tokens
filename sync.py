@@ -3,6 +3,7 @@ from tortoise import Tortoise
 import asyncio
 import config
 
+
 async def init_scheduler():
     await Tortoise.init(config=config.tortoise)
     await Tortoise.generate_schemas()
@@ -18,6 +19,7 @@ async def init_scheduler():
         await asyncio.Event().wait()
     except (KeyboardInterrupt, SystemExit):
         pass
+
 
 if __name__ == "__main__":
     asyncio.run(init_scheduler())

@@ -18,6 +18,11 @@ def get_settings():
     )
 
 
+# Hack for converting flot to decimal
+def float_to_decimal(value: float) -> Decimal:
+    return Decimal(str(value))
+
+
 # Convest timestamp to UTC datetime
 def from_timestamp(timestamp: int):
     return utcfromtimestamp(timestamp) if timestamp else None
@@ -55,22 +60,19 @@ def amount(value, decimals):
     return round(float(value) / math.pow(10, decimals), decimals)
 
 
-def float_to_Decimal(value):
-    return Decimal(str(value))
-
-
 def dead_response(message="Invalid Request", rid="sync"):
     return {"error": {"code": 404, "message": message}, "id": rid}
 
 
 async def make_request(method, params=[]):
+    settings = get_settings()
     async with aiohttp.ClientSession() as session:
         headers = {"content-type": "text/plain;"}
         data = json.dumps({"id": "sync", "method": method, "params": params})
 
         try:
             async with session.post(
-                config.endpoint, headers=headers, data=data
+                settings.general.endpoint, headers=headers, data=data
             ) as r:
                 data = await r.json()
 

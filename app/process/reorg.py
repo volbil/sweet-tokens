@@ -1,10 +1,8 @@
-from tortoise.transactions import atomic
 from app.models import Balance, Lock
 from app.utils import log_message
 from app import constants
 
 
-@atomic()
 async def process_reorg(block):
     async for transfer in block.transfers:
         if transfer.category == constants.CATEGORY_CREATE:

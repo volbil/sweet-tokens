@@ -1,7 +1,10 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.consensus import checks
 
 
-async def validate_transfer(decoded, inputs, outputs, height):
+async def validate_transfer(
+    session: AsyncSession, decoded, inputs, outputs, height
+):
     if decoded["lock"] and decoded["lock"] <= height:
         return False
 
@@ -21,12 +24,12 @@ async def validate_transfer(decoded, inputs, outputs, height):
         return False
 
     # Check if token exists
-    if not await checks.token(decoded["ticker"]):
+    if not await checks.token(session, decoded["ticker"]):
         return False
 
     # Check if address has enough balance
     if not await checks.balance(
-        decoded["ticker"], send_address, decoded["value"]
+        session, decoded["ticker"], send_address, decoded["value"]
     ):
         return False
 

@@ -1,7 +1,7 @@
 from .sync import emergency_reorg
-from .sync import sync_chain
+from .sync import run_sync_chain
 
 __all__ = [
     "emergency_reorg",
-    "sync_chain",
+    "run_sync_chain",
 ]

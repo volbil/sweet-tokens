@@ -1,5 +1,7 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import log_message
 from app.consensus import regex
+from sqlalchemy import select
 from app.models import Token
 from app import constants
 
@@ -27,14 +29,14 @@ def ticker_type(ticker, reissuable, decimals, value):
     return True
 
 
-async def ticker(ticker):
+async def ticker(session: AsyncSession, ticker):
     ticker_data = regex.ticker(ticker)
 
     if not ticker_data["valid"]:
         log_message(ticker_data["error"])
         return False
 
-    if await Token.filter(ticker=ticker).first():
+    if await session.scalar(select(Token).filter(Token.ticker == ticker)):
         log_message(f"Token with ticker {ticker} already exists")
         return False
 

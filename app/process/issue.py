@@ -1,4 +1,6 @@
-from app.utils import log_message
+from app.utils import float_to_decimal, log_message, amount
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app import constants
 from app import utils
 
@@ -11,51 +13,78 @@ from app.models import (
 )
 
 
-async def process_issue(decoded, inputs, block, txid):
+async def process_issue(session: AsyncSession, decoded, inputs, block, txid):
     send_address = list(inputs)[0]
 
-    token = await Token.filter(ticker=decoded["ticker"]).first()
+    token = await session.scalar(
+        select(Token).filter(Token.ticker == decoded["ticker"])
+    )
 
-    value = utils.amount(decoded["value"], token.decimals)
-
-    if not (address := await Address.filter(label=send_address).first()):
-        address = await Address.create(**{"label": send_address})
+    value = amount(decoded["value"], token.decimals)
 
     if not (
-        balance := await Balance.filter(address=address, token=token).first()
+        address := await session.scalar(
+            select(Address).filter(Address.label == send_address)
+        )
     ):
-        balance = await Balance.create(**{"address": address, "token": token})
+        address = Address(**{"label": send_address})
+        session.add(address)
 
-    transfer = await Transfer.create(
+    # We have this check in place for some edge cases like regorg
+    # This way we make sure that we won't create multiple balances
+    if not (
+        balance := await session.scalar(
+            select(Balance).filter(
+                Balance.address == address,
+                Balance.token == token,
+            )
+        )
+    ):
+        balance = Balance(
+            **{
+                "address": address,
+                "token": token,
+                "received": 0,
+                "locked": 0,
+                "value": 0,
+                "sent": 0,
+            }
+        )
+        session.add(balance)
+
+    transfer = Transfer(
         **{
+            "value": float_to_decimal(value),
             "category": constants.CATEGORY_ISSUE,
             "version": decoded["version"],
             "created": block.created,
             "receiver": address,
             "has_lock": False,
-            "value": value,
             "token": token,
             "block": block,
             "txid": txid,
         }
     )
 
+    session.add(transfer)
+
     balance.received += transfer.value
     balance.value += transfer.value
 
-    await balance.save()
-
     token.supply += transfer.value
-    await token.save()
 
-    await Index.create(
-        **{
-            "category": constants.CATEGORY_ISSUE,
-            "created": block.created,
-            "transfer": transfer,
-            "address": address,
-            "token": token,
-        }
+    session.add(
+        Index(
+            **{
+                "category": constants.CATEGORY_ISSUE,
+                "created": block.created,
+                "transfer": transfer,
+                "address": address,
+                "token": token,
+            }
+        )
     )
 
     log_message(f"Issued {value} {token.ticker}")
+
+    await session.commit()

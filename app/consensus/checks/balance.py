@@ -1,14 +1,23 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Token, Address, Balance
-from app.utils import log_message
-from app.utils import amount
+from app.utils import log_message, amount
+from sqlalchemy import select
 
 
-async def balance(ticker, address_label, value):
-    if not (token := await Token.filter(ticker=ticker).first()):
+async def balance(session: AsyncSession, ticker, address_label, value):
+    if not (
+        token := await session.scalar(
+            select(Token).filter(Token.ticker == ticker)
+        )
+    ):
         log_message(f"Token with ticker {ticker} don't exists")
         return False
 
-    if not (address := await Address.filter(label=address_label).first()):
+    if not (
+        address := await session.scalar(
+            select(Address).filter(Address.label == address_label)
+        )
+    ):
         log_message(f"Address {address_label} not found")
         return False
 
@@ -17,12 +26,16 @@ async def balance(ticker, address_label, value):
         return False
 
     if not (
-        balance := await Balance.filter(address=address, token=token).first()
+        balance := await session.scalar(
+            select(Balance).filter(
+                Balance.address == address, Balance.token == token
+            )
+        )
     ):
         log_message(f"Can't find {ticker} balance for {address_label}")
         return False
 
-    value = utils.amount(value, token.decimals)
+    value = amount(value, token.decimals)
 
     if float(balance.value) - value < 0:
         log_message(f"Address {address_label} don't have {value} {ticker}")

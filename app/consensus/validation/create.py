@@ -1,8 +1,9 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.consensus import checks
 from app import constants
 
 
-async def validate_create(decoded, inputs, outputs):
+async def validate_create(session: AsyncSession, decoded, inputs, outputs):
     if not checks.inputs_len(inputs):
         return False
 
@@ -27,7 +28,7 @@ async def validate_create(decoded, inputs, outputs):
         return False
 
     # Check ticker length and if it's available
-    if not await checks.ticker(decoded["ticker"]):
+    if not await checks.ticker(session, decoded["ticker"]):
         return False
 
     # Check ticker type constraints
@@ -45,6 +46,7 @@ async def validate_create(decoded, inputs, outputs):
 
     # Check if fee is enough for given action
     if not await checks.token_fee(
+        session,
         receive_address,
         outputs[receive_address],
         decoded["ticker"],

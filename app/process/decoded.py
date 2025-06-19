@@ -1,4 +1,4 @@
-from tortoise.transactions import atomic
+from sqlalchemy.ext.asyncio import AsyncSession
 from .transfer import process_transfer
 from .fee import process_fee_address
 from .create import process_create
@@ -11,27 +11,30 @@ from app import constants
 from app import consensus
 
 
-@atomic()
-async def process_decoded(decoded, inputs, outputs, block, txid):
+async def process_decoded(
+    session: AsyncSession, decoded, inputs, outputs, block, txid
+):
     category = decoded["category"]
     valid = True
 
     if category == constants.CREATE:
         # Validate create payload
-        if await consensus.validate_create(decoded, inputs, outputs):
-            await process_create(decoded, inputs, block, txid)
+        if await consensus.validate_create(session, decoded, inputs, outputs):
+            await process_create(session, decoded, inputs, block, txid)
 
     if category == constants.ISSUE:
         # Validate issue payload
-        if await consensus.validate_issue(decoded, inputs, outputs):
-            await process_issue(decoded, inputs, block, txid)
+        if await consensus.validate_issue(session, decoded, inputs, outputs):
+            await process_issue(session, decoded, inputs, block, txid)
 
     if category == constants.TRANSFER:
         # Validate transfer payload
         if await consensus.validate_transfer(
-            decoded, inputs, outputs, block.height
+            session, decoded, inputs, outputs, block.height
         ):
-            await process_transfer(decoded, inputs, outputs, block, txid)
+            await process_transfer(
+                session, decoded, inputs, outputs, block, txid
+            )
 
     if category == constants.BURN:
         # Validate burn payload
@@ -60,6 +63,6 @@ async def process_decoded(decoded, inputs, outputs, block, txid):
     if category == constants.COST:
         # Validate cost update
         if await consensus.validate_cost(decoded, inputs, block.height):
-            await process_cost(decoded, inputs, block)
+            await process_cost(session, decoded, inputs, block)
 
     return valid

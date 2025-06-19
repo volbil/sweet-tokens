@@ -32,7 +32,7 @@ class Transfer(Base):
         ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
     )
 
+    receiver: Mapped["Address"] = relationship(foreign_keys=[receiver_id])
+    sender: Mapped["Address"] = relationship(foreign_keys=[sender_id])
     block: Mapped["Block"] = relationship(foreign_keys=[block_id])
     token: Mapped["Token"] = relationship(foreign_keys=[token_id])
-    receiver: Mapped["Address"] = relationship(foreign_keys=[sender_id])
-    sender: Mapped["Address"] = relationship(foreign_keys=[sender_id])

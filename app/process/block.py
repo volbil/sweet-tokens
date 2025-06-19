@@ -1,6 +1,6 @@
 from app.models import FeeAddress, TokenCost, Block
 from app.utils import log_message, get_settings
-from tortoise.transactions import atomic
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.parse import parse_transaction
 from .decoded import process_decoded
 from app.protocol import Protocol
@@ -12,12 +12,11 @@ from app import utils
 SNAP_TXID = "3426ccad3017e14a4ab6efddaa44cb31beca67a86c82f63de18705f1b6de88df"
 
 
-@atomic()
-async def process_block(data):
+async def process_block(session: AsyncSession, data):
     settings = get_settings()
     chain = get_chain(settings.general.chain)
 
-    block = await Block.create(
+    block = Block(
         **{
             "created": data["block"]["created"],
             "height": data["block"]["height"],
@@ -25,18 +24,18 @@ async def process_block(data):
         }
     )
 
-    if block.height == chain["genesis"]["height"]:
-        await FeeAddress.create(
-            **{
-                "label": chain["cost"]["address"],
-                "height": block.height,
-                "block": block,
-            }
-        )
+    session.add(block)
 
-        await TokenCost.bulk_create(
+    if block.height == chain["genesis"]["height"]:
+        session.add_all(
             [
-                # Create
+                FeeAddress(
+                    **{
+                        "label": chain["cost"]["address"],
+                        "height": block.height,
+                        "block": block,
+                    }
+                ),
                 TokenCost(
                     **{
                         "value": chain["cost"]["create"]["root"],
@@ -138,4 +137,8 @@ async def process_block(data):
                 )
 
         if decoded:
-            await process_decoded(decoded, inputs, outputs, block, txid)
+            await process_decoded(
+                session, decoded, inputs, outputs, block, txid
+            )
+
+    await session.commit()
