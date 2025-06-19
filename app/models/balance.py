@@ -21,10 +21,5 @@ class Balance(Base):
         ForeignKey("service_tokens.id", ondelete="CASCADE"), index=True
     )
 
-    address: Mapped["Address"] = relationship(
-        back_populates="balances", foreign_keys=[address_id]
-    )
-
-    token: Mapped["Token"] = relationship(
-        back_populates="balances", foreign_keys=[token_id]
-    )
+    address: Mapped["Address"] = relationship(foreign_keys=[address_id])
+    token: Mapped["Token"] = relationship(foreign_keys=[token_id])

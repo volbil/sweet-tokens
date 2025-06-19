@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from .base import Base
 
@@ -20,14 +22,6 @@ class Unban(Base):
         ForeignKey("service_blocks.id", ondelete="CASCADE"), index=True
     )
 
-    address: Mapped["Address"] = relationship(
-        back_populates="address_unban", foreign_keys=[address_id]
-    )
-
-    admin: Mapped["Address"] = relationship(
-        back_populates="admin_unban", foreign_keys=[admin_id]
-    )
-
-    block: Mapped["Block"] = relationship(
-        back_populates="unbans", foreign_keys=[block_id]
-    )
+    address: Mapped["Address"] = relationship(foreign_keys=[address_id])
+    admin: Mapped["Address"] = relationship(foreign_keys=[admin_id])
+    block: Mapped["Block"] = relationship(foreign_keys=[block_id])

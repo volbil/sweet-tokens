@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
 from sqlalchemy import Numeric, String
+from sqlalchemy import ForeignKey
 from .base import Base
 
 
@@ -9,13 +11,16 @@ class FeeAddress(Base):
     label: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     height: Mapped[int] = mapped_column(index=True)
 
-    # admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="admin_fee_addresses", null=True
-    # )
+    admin_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
-    #     "models.Block", related_name="fee_addresses", on_delete=fields.CASCADE
-    # )
+    block_id = mapped_column(
+        ForeignKey("service_blocks.id", ondelete="CASCADE"), index=True
+    )
+
+    admin: Mapped["Address"] = relationship(foreign_keys=[admin_id])
+    block: Mapped["Block"] = relationship(foreign_keys=[block_id])
 
 
 class TokenCost(Base):
@@ -26,10 +31,13 @@ class TokenCost(Base):
     value: Mapped[Numeric] = mapped_column(Numeric(28, 8))
     height: Mapped[int] = mapped_column(index=True)
 
-    # admin: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="admin_costs", null=True
-    # )
+    admin_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
-    #     "models.Block", related_name="costs", on_delete=fields.CASCADE
-    # )
+    block_id = mapped_column(
+        ForeignKey("service_blocks.id", ondelete="CASCADE"), index=True
+    )
+
+    admin: Mapped["Address"] = relationship(foreign_keys=[admin_id])
+    block: Mapped["Block"] = relationship(foreign_keys=[block_id])

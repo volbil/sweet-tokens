@@ -14,11 +14,3 @@ class Token(Base):
     reissuable: Mapped[bool] = mapped_column(default=False)
     created: Mapped[datetime]
     decimals: Mapped[int]
-
-    balances: Mapped[list["Balance"]] = relationship(
-        back_populates="token", viewonly=True
-    )
-
-    # transfers = fields.ReverseRelation["Transfer"]
-    # index = fields.ReverseRelation["Index"]
-    # locks = fields.ReverseRelation["Lock"]

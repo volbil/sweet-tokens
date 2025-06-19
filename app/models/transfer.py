@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
 from sqlalchemy import Numeric, String
+from sqlalchemy import ForeignKey
 from datetime import datetime
 from .base import Base
 
@@ -14,23 +16,23 @@ class Transfer(Base):
     has_lock: Mapped[bool]
     version: Mapped[int]
 
-    # block: fields.ForeignKeyRelation["Block"] = fields.ForeignKeyField(
-    #     "models.Block", related_name="transfers",
-    #     on_delete=fields.CASCADE
-    # )
+    block_id = mapped_column(
+        ForeignKey("service_blocks.id", ondelete="CASCADE"), index=True
+    )
 
-    # token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-    #     "models.Token", related_name="transfers",
-    #     on_delete=fields.CASCADE
-    # )
+    token_id = mapped_column(
+        ForeignKey("service_tokens.id", ondelete="CASCADE"), index=True
+    )
 
-    # sender: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="transfers_send", null=True
-    # )
+    receiver_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # receiver: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="transfers_receive", null=True
-    # )
+    sender_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # index = fields.ReverseRelation["Index"]
-    # locks = fields.ReverseRelation["Lock"]
+    block: Mapped["Block"] = relationship(foreign_keys=[block_id])
+    token: Mapped["Token"] = relationship(foreign_keys=[token_id])
+    receiver: Mapped["Address"] = relationship(foreign_keys=[sender_id])
+    sender: Mapped["Address"] = relationship(foreign_keys=[sender_id])

@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
 from sqlalchemy import Numeric
 from .base import Base
 
@@ -9,17 +11,18 @@ class Lock(Base):
     value: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
     unlock_height: Mapped[int] = mapped_column(index=True)
 
-    # transfer: fields.ForeignKeyRelation["Transfer"] = fields.ForeignKeyField(
-    #     "models.Transfer", related_name="locks",
-    #     on_delete=fields.CASCADE
-    # )
+    address_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="locks",
-    #     on_delete=fields.CASCADE
-    # )
+    transfer_id = mapped_column(
+        ForeignKey("service_transfers.id", ondelete="CASCADE"), index=True
+    )
 
-    # token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-    #     "models.Token", related_name="locks",
-    #     on_delete=fields.CASCADE
-    # )
+    token_id = mapped_column(
+        ForeignKey("service_tokens.id", ondelete="CASCADE"), index=True
+    )
+
+    transfer: Mapped["Transfer"] = relationship(foreign_keys=[transfer_id])
+    address: Mapped["Address"] = relationship(foreign_keys=[address_id])
+    token: Mapped["Token"] = relationship(foreign_keys=[token_id])

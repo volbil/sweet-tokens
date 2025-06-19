@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from datetime import datetime
 from .base import Base
@@ -10,16 +12,18 @@ class Index(Base):
     category: Mapped[str] = mapped_column(String(32), index=True)
     created: Mapped[datetime]
 
-    # address: fields.ForeignKeyRelation["Address"] = fields.ForeignKeyField(
-    #     "models.Address", related_name="index"
-    # )
+    transfer_id = mapped_column(
+        ForeignKey("service_transfers.id", ondelete="CASCADE"), index=True
+    )
 
-    # transfer: fields.ForeignKeyRelation["Transfer"] = fields.ForeignKeyField(
-    #     "models.Transfer", related_name="index",
-    #     on_delete=fields.CASCADE
-    # )
+    address_id = mapped_column(
+        ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
+    )
 
-    # token: fields.ForeignKeyRelation["Token"] = fields.ForeignKeyField(
-    #     "models.Token", related_name="index",
-    #     on_delete=fields.CASCADE
-    # )
+    token_id = mapped_column(
+        ForeignKey("service_tokens.id", ondelete="CASCADE"), index=True
+    )
+
+    transfer: Mapped["Transfer"] = relationship(foreign_keys=[transfer_id])
+    address: Mapped["Address"] = relationship(foreign_keys=[address_id])
+    token: Mapped["Token"] = relationship(foreign_keys=[token_id])
