@@ -1,7 +1,8 @@
-from service.utils import log_message
-from service.models import Token
-from service import constants
-from .. import regex
+from app.utils import log_message
+from app.consensus import regex
+from app.models import Token
+from app import constants
+
 
 def ticker_type(ticker, reissuable, decimals, value):
     ticker_data = regex.ticker(ticker)
@@ -24,6 +25,7 @@ def ticker_type(ticker, reissuable, decimals, value):
             return False
 
     return True
+
 
 async def ticker(ticker):
     ticker_data = regex.ticker(ticker)

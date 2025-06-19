@@ -1,4 +1,5 @@
-from .. import checks
+from app.consensus import checks
+
 
 async def validate_burn(decoded, inputs):
     if not checks.inputs_len(inputs):

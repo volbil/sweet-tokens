@@ -1,4 +1,5 @@
-from service.utils import log_message
+from app.utils import log_message
+
 
 def outputs_len(outputs):
     if len(outputs) != 2:

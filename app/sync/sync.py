@@ -1,10 +1,10 @@
-from ..process import process_block, process_reorg
-from ..utils import make_request, log_message
-from ..process import process_locks
-from ..parse import parse_block
-from ..chain import get_chain
-from ..models import Block
-import config
+from app.utils import make_request, log_message, get_settings
+from app.process import process_block, process_reorg
+from app.process import process_locks
+from app.parse import parse_block
+from app.chain import get_chain
+from app.models import Block
+
 
 async def emergency_reorg(reorg_height):
     latest = await Block.filter().order_by("-height").limit(1).first()
@@ -14,18 +14,19 @@ async def emergency_reorg(reorg_height):
         log_message(f"Found reorg at height #{latest.height}")
 
         reorg_block = latest
-        latest = await Block.filter(
-            height=(latest.height - 1)
-        ).first()
+        latest = await Block.filter(height=(latest.height - 1)).first()
 
         await process_reorg(reorg_block)
 
+
 async def sync_chain():
+    settings = get_settings()
+
     # Init genesis
     if not (await Block.filter().order_by("-height").limit(1).first()):
         log_message("Adding genesis block to db")
 
-        chain = get_chain(config.chain)
+        chain = get_chain(settings.general.chain)
 
         block_data = await parse_block(chain["genesis"]["height"])
 
@@ -43,9 +44,7 @@ async def sync_chain():
         log_message(f"Found reorg at height #{latest.height}")
 
         reorg_block = latest
-        latest = await Block.filter(
-            height=(latest.height - 1)
-        ).first()
+        latest = await Block.filter(height=(latest.height - 1)).first()
 
         await process_reorg(reorg_block)
 

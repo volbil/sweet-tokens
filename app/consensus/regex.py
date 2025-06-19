@@ -1,10 +1,12 @@
-from ..chain import get_chain
-from .. import constants
-import config
+from app.utils import get_settings
+from app.chain import get_chain
+from app import constants
 import re
 
+
 def ticker(ticker: str) -> dict:
-    chain = get_chain(config.chain)
+    settings = get_settings()
+    chain = get_chain(settings.general.chain)
 
     PROTECTED_NAMES = re.compile("^" + "$|^".join(chain["protected"]) + "$")
 
@@ -17,9 +19,12 @@ def ticker(ticker: str) -> dict:
     TRAILING_PUNCTUATION = re.compile(r"^.*[._]$")
 
     result = {
-        "valid": False, "parent": None, "error": None,
-        "type": None, "ticker": ticker,
-        "owner": False
+        "ticker": ticker,
+        "owner": False,
+        "valid": False,
+        "parent": None,
+        "error": None,
+        "type": None,
     }
 
     if ticker.endswith(constants.FLAG_OWNER):

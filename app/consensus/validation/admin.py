@@ -1,4 +1,5 @@
-from .. import checks
+from app.consensus import checks
+
 
 async def validate_admin(inputs, outputs, height):
     if not checks.inputs_len(inputs):
@@ -17,6 +18,7 @@ async def validate_admin(inputs, outputs, height):
         return False
 
     return True
+
 
 async def validate_admin_ban(inputs, outputs, height, action_ban):
     if not await validate_admin(inputs, outputs, height):

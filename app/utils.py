@@ -18,6 +18,17 @@ def get_settings():
     )
 
 
+# Convest timestamp to UTC datetime
+def from_timestamp(timestamp: int):
+    return utcfromtimestamp(timestamp) if timestamp else None
+
+
+# Convert datetime to timestamp
+def to_timestamp(date: datetime | None) -> int | None:
+    date = date.replace(tzinfo=timezone.utc) if date else date
+    return int(date.timestamp()) if date else None
+
+
 # Helper function for toroise pagination
 def pagination(page, size=20):
     limit = size

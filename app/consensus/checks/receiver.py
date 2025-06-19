@@ -1,5 +1,6 @@
-from service.utils import log_message
+from app.utils import log_message
 import copy
+
 
 def receiver(inputs, outputs):
     send_address = list(inputs)[0]

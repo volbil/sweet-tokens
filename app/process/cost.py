@@ -1,11 +1,11 @@
-from ..models import TokenCost, Address
-from ..utils import log_message
-from ..chain import get_chain
-from ..utils import amount
-import config
+from app.utils import log_message, get_settings, amount
+from app.models import TokenCost, Address
+from app.chain import get_chain
+
 
 async def process_cost(decoded, inputs, block):
-    chain = get_chain(config.chain)
+    settings = get_settings()
+    chain = get_chain(settings.general.chain)
 
     send_address_label = list(inputs)[0]
 
@@ -13,14 +13,16 @@ async def process_cost(decoded, inputs, block):
 
     value = amount(decoded["value"], chain["decimals"])
 
-    await TokenCost.create(**{
-        "action": decoded["action"],
-        "type": decoded["type"],
-        "height": block.height,
-        "admin": send_address,
-        "value": value,
-        "block": block
-    })
+    await TokenCost.create(
+        **{
+            "action": decoded["action"],
+            "type": decoded["type"],
+            "height": block.height,
+            "admin": send_address,
+            "value": value,
+            "block": block,
+        }
+    )
 
     admin = send_address_label
     token_type = decoded["type"]

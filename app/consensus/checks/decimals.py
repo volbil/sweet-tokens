@@ -1,5 +1,6 @@
-from service.utils import log_message
-from service import constants
+from app.utils import log_message
+from app import constants
+
 
 def decimals(decimals):
     if decimals < constants.MIN_DECIMALS or decimals > constants.MAX_DECIMALS:

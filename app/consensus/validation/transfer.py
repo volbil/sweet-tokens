@@ -1,4 +1,5 @@
-from .. import checks
+from app.consensus import checks
+
 
 async def validate_transfer(decoded, inputs, outputs, height):
     if decoded["lock"] and decoded["lock"] <= height:

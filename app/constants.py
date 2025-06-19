@@ -1,5 +1,5 @@
 # System version
-VERSION = "0.2.2"
+VERSION = "0.1.0"
 
 DEFAULT_VERSION = 1
 MIN_VERSION = 1

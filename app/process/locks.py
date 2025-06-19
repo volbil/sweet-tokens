@@ -1,5 +1,6 @@
-from ..models import Lock, Balance
-from ..utils import log_message
+from app.models import Lock, Balance
+from app.utils import log_message
+
 
 async def process_locks(height):
     locks = await Lock.filter(unlock_height=height)
@@ -9,9 +10,7 @@ async def process_locks(height):
         address = await lock.address
         token = await lock.token
 
-        balance = await Balance.filter(
-            address=address, token=token
-        ).first()
+        balance = await Balance.filter(address=address, token=token).first()
 
         balance.locked -= transfer.value
         balance.value += transfer.value

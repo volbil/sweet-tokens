@@ -1,5 +1,6 @@
-from service import constants
-from .. import checks
+from app.consensus import checks
+from app import constants
+
 
 async def validate_create(decoded, inputs, outputs):
     if not checks.inputs_len(inputs):
@@ -22,9 +23,7 @@ async def validate_create(decoded, inputs, outputs):
         return False
 
     # Check if new token supply within constraints
-    if not await checks.supply_create(
-        decoded["value"], decoded["decimals"]
-    ):
+    if not await checks.supply_create(decoded["value"], decoded["decimals"]):
         return False
 
     # Check ticker length and if it's available
@@ -33,8 +32,10 @@ async def validate_create(decoded, inputs, outputs):
 
     # Check ticker type constraints
     if not checks.ticker_type(
-        decoded["ticker"], decoded["reissuable"],
-        decoded["decimals"], decoded["value"]
+        decoded["ticker"],
+        decoded["reissuable"],
+        decoded["decimals"],
+        decoded["value"],
     ):
         return False
 
@@ -44,8 +45,10 @@ async def validate_create(decoded, inputs, outputs):
 
     # Check if fee is enough for given action
     if not await checks.token_fee(
-        receive_address, outputs[receive_address],
-        decoded["ticker"], constants.ACTION_CREATE
+        receive_address,
+        outputs[receive_address],
+        decoded["ticker"],
+        constants.ACTION_CREATE,
     ):
         return False
 

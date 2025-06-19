@@ -1,49 +1,58 @@
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
+from app.database import sessionmanager
 import fastapi.openapi.utils as fu
 from fastapi import FastAPI
-from . import constants
-from . import errors
+from app import constants
+from app import errors
 
 
-def create_app() -> FastAPI:
-    fu.validation_error_response_definition = errors.ErrorResponse.schema()
+def create_app(init_db: bool = True) -> FastAPI:
+    settings = get_settings()
+    lifespan = None
 
-    def custom_openapi():
-        if app.openapi_schema:
-            return app.openapi_schema
+    # SQLAlchemy initialization process
+    if init_db:
+        sessionmanager.init(settings.database.endpoint)
 
-        openapi_schema = get_openapi(
-            version=constants.VERSION, title="Token layer", routes=app.routes
-        )
+        @asynccontextmanager
+        async def lifespan(app: FastAPI):
+            yield
+            if sessionmanager._engine is not None:
+                await sessionmanager.close()
 
-        app.openapi_schema = openapi_schema
-        return app.openapi_schema
+    fu.validation_error_response_definition = (
+        errors.ErrorResponse.model_json_schema()
+    )
 
-    app = FastAPI()
-
-    app.openapi = custom_openapi
+    app = FastAPI(
+        title="Sweet Tokens",
+        version=constants.VERSION,
+        lifespan=lifespan,
+    )
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
         allow_credentials=False,
+        allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    app.add_exception_handler(RequestValidationError, errors.validation_handler)
     app.add_exception_handler(errors.Abort, errors.abort_handler)
+    app.add_exception_handler(
+        RequestValidationError,
+        errors.validation_handler,
+    )
 
-    from .construct import construct
-    from .message import message
-    from .system import system
-    from .layer import layer
+    from .construct import router as construct_router
+    from .message import router as message_router
+    from .system import router as system_router
+    from .layer import router as layer_router
 
-    app.include_router(construct)
-    app.include_router(message)
-    app.include_router(system)
-    app.include_router(layer)
+    app.include_router(construct_router)
+    app.include_router(message_router)
+    app.include_router(system_router)
+    app.include_router(layer_router)
 
     return app

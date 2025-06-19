@@ -1,5 +1,6 @@
-from service.utils import log_message
-from service.models import Address
+from app.utils import log_message
+from app.models import Address
+
 
 async def banned(address_label):
     if not (address := await Address.filter(label=address_label).first()):

@@ -1,5 +1,6 @@
-from service import constants
-from .. import checks
+from app.consensus import checks
+from app import constants
+
 
 async def validate_cost(decoded, inputs, height):
     if not checks.inputs_len(inputs):
@@ -17,14 +18,16 @@ async def validate_cost(decoded, inputs, height):
 
     # Check cost action (just in case)
     if decoded["action"] not in [
-        constants.ACTION_CREATE, constants.ACTION_ISSUE
+        constants.ACTION_CREATE,
+        constants.ACTION_ISSUE,
     ]:
         return False
 
     # Check cost type (just in case)
     if decoded["type"] not in [
-        constants.TOKEN_ROOT, constants.TOKEN_SUB,
-        constants.TOKEN_UNIQUE
+        constants.TOKEN_ROOT,
+        constants.TOKEN_SUB,
+        constants.TOKEN_UNIQUE,
     ]:
         return False
 

@@ -1,5 +1,6 @@
-from service import constants
-from .. import checks
+from app.consensus import checks
+from app import constants
+
 
 async def validate_issue(decoded, inputs, outputs):
     if not checks.inputs_len(inputs):
@@ -35,8 +36,10 @@ async def validate_issue(decoded, inputs, outputs):
 
     # Check if fee is enough for given action
     if not await checks.token_fee(
-        receive_address, outputs[receive_address],
-        decoded["ticker"], constants.ACTION_ISSUE
+        receive_address,
+        outputs[receive_address],
+        decoded["ticker"],
+        constants.ACTION_ISSUE,
     ):
         return False
 

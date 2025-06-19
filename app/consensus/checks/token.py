@@ -1,5 +1,6 @@
-from service.utils import log_message
-from service.models import Token
+from app.utils import log_message
+from app.models import Token
+
 
 async def token(ticker):
     if not await Token.filter(ticker=ticker).first():

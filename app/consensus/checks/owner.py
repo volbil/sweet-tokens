@@ -1,7 +1,8 @@
-from service.utils import log_message
-from service.models import Token
-from service import constants
-from .. import regex
+from app.utils import log_message
+from app.consensus import regex
+from app.models import Token
+from app import constants
+
 
 async def owner(ticker, owner_address):
     if not await Token.filter(ticker=ticker).first():
@@ -14,10 +15,11 @@ async def owner(ticker, owner_address):
         log_message(f"Token with ticker {owner_ticker} don't exists")
         return False
 
-    if not (balance := await token_owner.balances.filter(
-        token=token_owner,
-        value__gt=0
-    ).first()):
+    if not (
+        balance := await token_owner.balances.filter(
+            token=token_owner, value__gt=0
+        ).first()
+    ):
         log_message(f"Couldn't find holder of {owner_ticker}")
         return False
 
@@ -28,6 +30,7 @@ async def owner(ticker, owner_address):
         return False
 
     return True
+
 
 async def owner_parent(ticker, owner_address):
     ticker_data = regex.ticker(ticker)
@@ -41,10 +44,11 @@ async def owner_parent(ticker, owner_address):
         log_message(f"Token with ticker {owner_ticker} don't exists")
         return False
 
-    if not (balance := await token_owner.balances.filter(
-        token=token_owner,
-        value__gt=0
-    ).first()):
+    if not (
+        balance := await token_owner.balances.filter(
+            token=token_owner, value__gt=0
+        ).first()
+    ):
         log_message(f"Couldn't find holder of {owner_ticker}")
         return False
 

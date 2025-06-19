@@ -1,7 +1,8 @@
-from service.utils import log_message
-from service.models import Token
-from service import constants
-from service import utils
+from app.utils import log_message
+from app.models import Token
+from app import constants
+from app import utils
+
 
 async def supply_create(value, decimals):
     supply = utils.amount(value, decimals)
@@ -10,6 +11,7 @@ async def supply_create(value, decimals):
         return False
 
     return True
+
 
 async def supply_issue(ticker, value):
     if not (token := await Token.filter(ticker=ticker).first()):

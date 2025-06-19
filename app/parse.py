@@ -1,5 +1,6 @@
-from .utils import make_request
+from app.utils import make_request
 from datetime import datetime
+
 
 async def parse_transaction(txid, height=None, tx_index=None):
     tx_data = await make_request("getrawtransaction", [txid, True])
@@ -14,20 +15,20 @@ async def parse_transaction(txid, height=None, tx_index=None):
 
     for vin_index, vin in enumerate(tx_data["vin"]):
         if "coinbase" in vin:
-            asm_data = await make_request(
-                "decodescript", [vin["coinbase"]]
-            )
+            asm_data = await make_request("decodescript", [vin["coinbase"]])
 
-            inputs.append({
-                "sequence": vin["sequence"],
-                "script_sig_hex": vin["coinbase"],
-                "script_sig_asm": asm_data["asm"],
-                "script_sig_type": "coinbase",
-                "output_index": None,
-                "output_txid": None,
-                "index": vin_index,
-                "witness": []
-            })
+            inputs.append(
+                {
+                    "script_sig_hex": vin["coinbase"],
+                    "script_sig_asm": asm_data["asm"],
+                    "script_sig_type": "coinbase",
+                    "sequence": vin["sequence"],
+                    "output_index": None,
+                    "output_txid": None,
+                    "index": vin_index,
+                    "witness": [],
+                }
+            )
 
         else:
             witness = []
@@ -36,21 +37,22 @@ async def parse_transaction(txid, height=None, tx_index=None):
                 for witness_index, witness_data in enumerate(
                     vin["txinwitness"]
                 ):
-                    witness.append({
-                        "index": witness_index,
-                        "script": witness_data
-                    })
+                    witness.append(
+                        {"index": witness_index, "script": witness_data}
+                    )
 
-            inputs.append({
-                "sequence": vin["sequence"],
-                "output_index": vin["vout"],
-                "output_txid": vin["txid"],
-                "script_sig_hex": vin["scriptSig"]["hex"],
-                "script_sig_asm": vin["scriptSig"]["asm"],
-                "script_sig_type": None,
-                "index": vin_index,
-                "witness": witness
-            })
+            inputs.append(
+                {
+                    "sequence": vin["sequence"],
+                    "output_index": vin["vout"],
+                    "output_txid": vin["txid"],
+                    "script_sig_hex": vin["scriptSig"]["hex"],
+                    "script_sig_asm": vin["scriptSig"]["asm"],
+                    "script_sig_type": None,
+                    "index": vin_index,
+                    "witness": witness,
+                }
+            )
 
     for vout_index, vout in enumerate(tx_data["vout"]):
         address = None
@@ -63,19 +65,21 @@ async def parse_transaction(txid, height=None, tx_index=None):
         # Newer versions
         if "address" in vout["scriptPubKey"]:
             address = vout["scriptPubKey"]["address"]
-        
+
         if "reqSigs" in vout["scriptPubKey"]:
             req_sigs = vout["scriptPubKey"]["reqSigs"]
 
-        outputs.append({
-            "value": vout["value"],
-            "script_type": vout["scriptPubKey"]["type"],
-            "script_hex": vout["scriptPubKey"]["hex"],
-            "script_asm": vout["scriptPubKey"]["asm"],
-            "address": address,
-            "req_sigs": req_sigs,
-            "index": vout_index
-        })
+        outputs.append(
+            {
+                "value": vout["value"],
+                "script_type": vout["scriptPubKey"]["type"],
+                "script_hex": vout["scriptPubKey"]["hex"],
+                "script_asm": vout["scriptPubKey"]["asm"],
+                "address": address,
+                "req_sigs": req_sigs,
+                "index": vout_index,
+            }
+        )
 
     return {
         "created": datetime.fromtimestamp(tx_data["time"]),
@@ -94,6 +98,7 @@ async def parse_transaction(txid, height=None, tx_index=None):
         "inputs": inputs,
     }
 
+
 async def parse_block(height):
     result = {}
 
@@ -101,9 +106,11 @@ async def parse_block(height):
 
     block_data = await make_request("getblock", [block_hash])
 
-    prev_hash = block_data[
-        "previousblockhash"
-    ] if "previousblockhash" in block_data else None
+    prev_hash = (
+        block_data["previousblockhash"]
+        if "previousblockhash" in block_data
+        else None
+    )
 
     result["block"] = {
         "created": datetime.fromtimestamp(block_data["time"]),
@@ -119,7 +126,7 @@ async def parse_block(height):
         "bits": block_data["bits"],
         "hash": block_data["hash"],
         "size": block_data["size"],
-        "prev_hash": prev_hash
+        "prev_hash": prev_hash,
     }
 
     result["transactions"] = []
@@ -129,9 +136,7 @@ async def parse_block(height):
         return result
 
     for tx_index, txid in enumerate(block_data["tx"]):
-        tx_data = await parse_transaction(
-            txid, height, tx_index
-        )
+        tx_data = await parse_transaction(txid, height, tx_index)
 
         result["transactions"].append(tx_data)
 

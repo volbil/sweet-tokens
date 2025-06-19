@@ -1,8 +1,15 @@
-from ..models import Token, Address, Index
-from ..models import Balance, Transfer
-from ..utils import log_message
-from .. import constants
-from .. import utils
+from app.utils import log_message
+from app import constants
+from app import utils
+
+from app.models import (
+    Transfer,
+    Balance,
+    Address,
+    Index,
+    Token,
+)
+
 
 async def process_burn(decoded, inputs, block, txid):
     send_address_label = list(inputs)[0]
@@ -15,32 +22,36 @@ async def process_burn(decoded, inputs, block, txid):
         address=send_address, token=token
     ).first()
 
-    transfer = await Transfer.create(**{
-        "category": constants.CATEGORY_BURN,
-        "version": decoded["version"],
-        "created": block.created,
-        "sender": send_address,
-        "has_lock": False,
-        "receiver": None,
-        "value": value,
-        "token": token,
-        "block": block,
-        "txid": txid
-    })
+    transfer = await Transfer.create(
+        **{
+            "category": constants.CATEGORY_BURN,
+            "version": decoded["version"],
+            "created": block.created,
+            "sender": send_address,
+            "has_lock": False,
+            "receiver": None,
+            "value": value,
+            "token": token,
+            "block": block,
+            "txid": txid,
+        }
+    )
 
     send_balance.value -= transfer.value
     send_balance.sent += transfer.value
     await send_balance.save()
-    
+
     token.supply -= transfer.value
     await token.save()
 
-    await Index.create(**{
-        "category": constants.CATEGORY_BURN,
-        "created": block.created,
-        "address": send_address,
-        "transfer": transfer,
-        "token": token
-    })
+    await Index.create(
+        **{
+            "category": constants.CATEGORY_BURN,
+            "created": block.created,
+            "address": send_address,
+            "transfer": transfer,
+            "token": token,
+        }
+    )
 
     log_message(f"Burned {value} {token.ticker}")

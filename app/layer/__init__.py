@@ -1,1 +1,3 @@
-from .views import router as layer
+from .router import router
+
+__all__ = ["router"]

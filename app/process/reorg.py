@@ -1,7 +1,8 @@
 from tortoise.transactions import atomic
-from ..models import Balance, Lock
-from ..utils import log_message
-from .. import constants
+from app.models import Balance, Lock
+from app.utils import log_message
+from app import constants
+
 
 @atomic()
 async def process_reorg(block):
@@ -81,9 +82,7 @@ async def process_reorg(block):
         address = await lock.address
         token = await lock.token
 
-        balance = await Balance.filter(
-            address=address, token=token
-        ).first()
+        balance = await Balance.filter(address=address, token=token).first()
 
         balance.locked += transfer.value
         balance.value -= transfer.value

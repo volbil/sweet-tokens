@@ -1,6 +1,7 @@
-from service.models import Token, Address, Balance
-from service.utils import log_message
-from service import utils
+from app.models import Token, Address, Balance
+from app.utils import log_message
+from app.utils import amount
+
 
 async def balance(ticker, address_label, value):
     if not (token := await Token.filter(ticker=ticker).first()):
@@ -15,9 +16,9 @@ async def balance(ticker, address_label, value):
         log_message(f"Address {address_label} banned")
         return False
 
-    if not (balance := await Balance.filter(
-        address=address, token=token
-    ).first()):
+    if not (
+        balance := await Balance.filter(address=address, token=token).first()
+    ):
         log_message(f"Can't find {ticker} balance for {address_label}")
         return False
 

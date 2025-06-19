@@ -1,4 +1,5 @@
-from service.utils import log_message
+from app.utils import log_message
+
 
 def inputs_len(inputs):
     if len(inputs) != 1:

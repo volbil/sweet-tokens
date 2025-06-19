@@ -1,5 +1,6 @@
-from ..models import Ban, Address
-from ..utils import log_message
+from app.models import Ban, Address
+from app.utils import log_message
+
 
 async def process_ban(inputs, outputs, block, txid):
     send_address_label = list(inputs)[0]
@@ -8,19 +9,23 @@ async def process_ban(inputs, outputs, block, txid):
 
     send_address = await Address.filter(label=send_address_label).first()
 
-    if not (receive_address := await Address.filter(
-        label=receive_address_label
-    ).first()):
-        receive_address = await Address.create(**{
-            "label": receive_address_label
-        })
+    if not (
+        receive_address := await Address.filter(
+            label=receive_address_label
+        ).first()
+    ):
+        receive_address = await Address.create(
+            **{"label": receive_address_label}
+        )
 
-    await Ban.create(**{
-        "address": receive_address,
-        "admin": send_address,
-        "block": block,
-        "txid": txid
-    })
+    await Ban.create(
+        **{
+            "address": receive_address,
+            "admin": send_address,
+            "block": block,
+            "txid": txid,
+        }
+    )
 
     receive_address.banned = True
     await receive_address.save()
