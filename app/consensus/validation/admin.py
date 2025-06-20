@@ -1,3 +1,4 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.consensus import checks
 
 
@@ -20,7 +21,9 @@ async def validate_admin(inputs, outputs, height):
     return True
 
 
-async def validate_admin_ban(inputs, outputs, height, action_ban):
+async def validate_admin_ban(
+    session: AsyncSession, inputs, outputs, height, action_ban
+):
     if not await validate_admin(inputs, outputs, height):
         return False
 
@@ -32,7 +35,7 @@ async def validate_admin_ban(inputs, outputs, height, action_ban):
         return False
 
     # Don't ban/unban if we don't need to
-    if await checks.banned(receive_address) == action_ban:
+    if await checks.banned(session, receive_address) == action_ban:
         return False
 
     return True

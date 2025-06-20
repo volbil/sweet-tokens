@@ -1,6 +1,7 @@
-from app.utils import log_message
+from app.utils import float_to_decimal, log_message, amount
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app import constants
-from app import utils
 
 from app.models import (
     Transfer,
@@ -11,47 +12,59 @@ from app.models import (
 )
 
 
-async def process_burn(decoded, inputs, block, txid):
+async def process_burn(session: AsyncSession, decoded, inputs, block, txid):
     send_address_label = list(inputs)[0]
 
-    token = await Token.filter(ticker=decoded["ticker"]).first()
-    value = utils.amount(decoded["value"], token.decimals)
+    token = await session.scalar(
+        select(Token).filter(Token.ticker == decoded["ticker"])
+    )
 
-    send_address = await Address.filter(label=send_address_label).first()
-    send_balance = await Balance.filter(
-        address=send_address, token=token
-    ).first()
+    value = amount(decoded["value"], token.decimals)
 
-    transfer = await Transfer.create(
+    send_address = await session.scalar(
+        select(Address).filter(Address.label == send_address_label)
+    )
+
+    send_balance = await session.scalar(
+        select(Balance).filter(
+            Balance.address == send_address, Balance.token == token
+        )
+    )
+
+    transfer = Transfer(
         **{
+            "value": float_to_decimal(value),
             "category": constants.CATEGORY_BURN,
             "version": decoded["version"],
             "created": block.created,
             "sender": send_address,
             "has_lock": False,
             "receiver": None,
-            "value": value,
             "token": token,
             "block": block,
             "txid": txid,
         }
     )
 
+    session.add(transfer)
+
     send_balance.value -= transfer.value
     send_balance.sent += transfer.value
-    await send_balance.save()
 
     token.supply -= transfer.value
-    await token.save()
 
-    await Index.create(
-        **{
-            "category": constants.CATEGORY_BURN,
-            "created": block.created,
-            "address": send_address,
-            "transfer": transfer,
-            "token": token,
-        }
+    session.add(
+        Index(
+            **{
+                "category": constants.CATEGORY_BURN,
+                "created": block.created,
+                "address": send_address,
+                "transfer": transfer,
+                "token": token,
+            }
+        )
     )
 
     log_message(f"Burned {value} {token.ticker}")
+
+    await session.commit()

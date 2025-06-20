@@ -38,27 +38,27 @@ async def process_decoded(
 
     if category == constants.BURN:
         # Validate burn payload
-        if await consensus.validate_burn(decoded, inputs):
-            await process_burn(decoded, inputs, block, txid)
+        if await consensus.validate_burn(session, decoded, inputs):
+            await process_burn(session, decoded, inputs, block, txid)
 
     if category == constants.BAN:
         # Validate admin
         if await consensus.validate_admin_ban(
-            inputs, outputs, block.height, True
+            session, inputs, outputs, block.height, True
         ):
             await process_ban(inputs, outputs, block, txid)
 
     if category == constants.UNBAN:
         # Validate admin
         if await consensus.validate_admin_ban(
-            inputs, outputs, block.height, False
+            session, inputs, outputs, block.height, False
         ):
             await process_unban(inputs, outputs, block, txid)
 
     if category == constants.FEE_ADDRESS:
         # Validate admin
         if await consensus.validate_admin(inputs, outputs, block.height):
-            await process_fee_address(inputs, outputs, block)
+            await process_fee_address(session, inputs, outputs, block)
 
     if category == constants.COST:
         # Validate cost update
