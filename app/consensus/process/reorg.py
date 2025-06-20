@@ -1,49 +1,62 @@
-from app.models import Balance, Lock
+from app.models import Transfer, Balance, Lock, Unban, Ban
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 from app.utils import log_message
+from sqlalchemy import select
 from app import constants
 
 
-async def process_reorg(block):
-    async for transfer in block.transfers:
-        if transfer.category == constants.CATEGORY_CREATE:
-            token = await transfer.token
-            await token.delete()
+async def process_reorg(session: AsyncSession, block):
+    transfers = await session.scalars(
+        select(Transfer)
+        .options(joinedload(Transfer.receiver))
+        .options(joinedload(Transfer.sender))
+        .options(joinedload(Transfer.token))
+        .filter(Transfer.block == block)
+    )
 
-            log_message(f"Rollback token {token.ticker} creation")
+    async for transfer in transfers:
+        if transfer.category == constants.CATEGORY_CREATE:
+            ticker = transfer.token
+
+            # Since we deleting token here all relacted records like balances
+            # should be deleted via cascade deletion
+            await session.delete(transfer.token)
+
+            log_message(f"Rollback token {ticker} creation")
 
         if transfer.category == constants.CATEGORY_ISSUE:
-            receiver = await transfer.receiver
-            token = await transfer.token
-
-            receiver_balance = await Balance.filter(
-                address=receiver, token=token
-            ).first()
+            receiver_balance = await session.scalar(
+                select(Balance).filter(
+                    Balance.address == transfer.receiver,
+                    Balance.token == transfer.token,
+                )
+            )
 
             receiver_balance.received -= transfer.value
             receiver_balance.value -= transfer.value
-            await receiver_balance.save()
 
             token.supply -= transfer.value
-            await token.save()
 
             log_message(f"Rollback token {token.ticker} supply issue")
 
         if transfer.category == constants.CATEGORY_TRANSFER:
-            receiver = await transfer.receiver
-            sender = await transfer.receiver
-            token = await transfer.token
+            receiver_balance = await session.scalar(
+                select(Balance).filter(
+                    Balance.address == transfer.receiver,
+                    Balance.token == transfer.token,
+                )
+            )
 
-            receiver_balance = await Balance.filter(
-                address=receiver, token=token
-            ).first()
-
-            sender_balance = await Balance.filter(
-                address=sender, token=token
-            ).first()
+            sender_balance = await session.scalar(
+                select(Balance).filter(
+                    Balance.address == transfer.sender,
+                    Balance.token == transfer.token,
+                )
+            )
 
             sender_balance.value += transfer.value
             sender_balance.sent -= transfer.value
-            await sender_balance.save()
 
             receiver_balance.received -= transfer.value
 
@@ -53,42 +66,50 @@ async def process_reorg(block):
             else:
                 receiver_balance.value -= transfer.value
 
-            await receiver_balance.save()
-
             log_message(f"Rollback {transfer.value} {token.ticker} transfer")
 
-    async for ban in block.bans:
-        address = await ban.address
-        address.banned = False
-        await address.save()
-        await ban.delete()
+    bans = await session.scalars(
+        select(Ban).options(joinedload(Ban.address)).filter(Ban.block == block)
+    )
 
+    unbans = await session.scalars(
+        select(Unban)
+        .options(joinedload(Unban.address))
+        .filter(Unban.block == block)
+    )
+
+    for ban in bans:
+        ban.address.banned = False
+        await session.delete(ban)
         log_message(f"Rollback address {address.label} ban")
 
-    async for unban in block.unbans:
-        address = await unban.address
-        address.banned = True
-        await address.save()
-        await unban.delete()
-
+    for unban in unbans:
+        unban.address.banned = True
+        await session.delete(unban)
         log_message(f"Rollback address {address.label} unban")
 
-    locks = await Lock.filter(unlock_height=block.height)
+    locks = await session.scalars(
+        select(Lock)
+        .options(joinedload(Lock.transfer))
+        .options(joinedload(Lock.address))
+        .options(joinedload(Lock.token))
+        .filter(Lock.unlock_height == block.height)
+    )
 
     for lock in locks:
-        transfer = await lock.transfer
-        address = await lock.address
-        token = await lock.token
-
-        balance = await Balance.filter(address=address, token=token).first()
-
-        balance.locked += transfer.value
-        balance.value -= transfer.value
-
-        await balance.save()
-
-        log_message(
-            f"Rollback lock {transfer.value} {token.ticker} to {address.label}"
+        balance = await session.scalar(
+            select(Balance).filter(
+                Balance.address == lock.address,
+                Balance.token == lock.token,
+            )
         )
 
-    await block.delete()
+        balance.locked += lock.transfer.value
+        balance.value -= lock.transfer.value
+
+        log_message(
+            f"Rollback lock {lock.transfer.value} {lock.token.ticker} to {lock.address.label}"
+        )
+
+    await session.delete(block)
+    await session.commit()
