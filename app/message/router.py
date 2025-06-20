@@ -1,6 +1,6 @@
+from app.consensus.protocol import Protocol
 from fastapi import APIRouter, Query
 from app.utils import get_settings
-from app.protocol import Protocol
 from app.consensus import regex
 from app.chain import get_chain
 from app.errors import Abort

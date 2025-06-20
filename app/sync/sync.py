@@ -1,12 +1,16 @@
 from app.utils import make_request, log_message, get_settings
-from app.process import process_block, process_reorg
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import sessionmanager
-from app.process import process_locks
 from app.parse import parse_block
 from app.chain import get_chain
 from sqlalchemy import select
 from app.models import Block
+
+from app.consensus.process import (
+    process_block,
+    process_reorg,
+    process_locks,
+)
 
 
 async def emergency_reorg(reorg_height):

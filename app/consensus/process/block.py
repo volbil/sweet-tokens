@@ -1,9 +1,9 @@
 from app.models import FeeAddress, TokenCost, Block
 from app.utils import log_message, get_settings
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.consensus.protocol import Protocol
 from app.parse import parse_transaction
 from .decoded import process_decoded
-from app.protocol import Protocol
 from app.chain import get_chain
 from app import constants
 from app import utils
