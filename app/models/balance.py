@@ -1,17 +1,24 @@
+from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey
 from sqlalchemy import Numeric
+from decimal import Decimal
 from .base import Base
+
+
+if TYPE_CHECKING:
+    from .address import Address
+    from .custom_token import Token
 
 
 class Balance(Base):
     __tablename__ = "service_balances"
 
-    received: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
-    locked: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
-    value: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
-    sent: Mapped[Numeric] = mapped_column(Numeric(28, 8), default=0)
+    received: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
+    locked: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
+    value: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
+    sent: Mapped[Decimal] = mapped_column(Numeric(28, 8), default=0)
 
     address_id = mapped_column(
         ForeignKey("service_addresses.id", ondelete="CASCADE"), index=True
