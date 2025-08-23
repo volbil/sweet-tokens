@@ -10,7 +10,6 @@ from app import utils
 from app.models import (
     FeeAddress,
     TokenCost,
-    Transfer,
     Address,
     Block,
     Token,
@@ -93,45 +92,18 @@ async def transfers_list(
 
 
 @router.get("/tx/{txid}", summary="Transaction transfers")
-async def transfer_info(
+async def transaction_transfers(
     txid: str,
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
 ):
-    total = await Transfer.filter(txid=txid).count()
     limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
 
-    transfers = (
-        await Transfer.filter(txid=txid)
-        .order_by("-created")
-        .limit(limit)
-        .offset(offset)
-    )
+    total = await service.count_transaction_transfers(session, txid)
+    items = await service.list_transaction_transfers(session, txid, limit, offset)
 
-    for transfer in transfers:
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        token = await transfer.token
-        block = await transfer.block
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
 @router.get("/address/{label}", summary="Address stats and balances")

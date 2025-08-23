@@ -1,9 +1,14 @@
-from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import joinedload
+from typing import Any
 
-from app import utils
 from app.models import Balance, Block, Token, Transfer
+from app import utils
+
+from sqlalchemy.orm.strategy_options import (
+    _AbstractLoad,  # pyright: ignore[reportPrivateUsage]
+)
 
 
 async def get_token(session: AsyncSession, ticker: str):
@@ -135,63 +140,9 @@ async def list_token_holders(
     ]
 
 
-async def count_token_transfers(session: AsyncSession, token: Token):
-    return (
-        await session.scalar(
-            select(func.count(Transfer.id)).filter(Transfer.token_id == token.id)
-        )
-        or 0
-    )
-
-
-async def list_token_transfers(
-    session: AsyncSession, token: Token, limit: int, offset: int
-):
-    transfers = await session.scalars(
-        select(Transfer)
-        .filter(Transfer.token_id == token.id)
-        .options(
-            joinedload(Transfer.sender),
-            joinedload(Transfer.receiver),
-            joinedload(Transfer.block),
-        )
-        .limit(limit)
-        .offset(offset)
-    )
-
-    return [
-        {
-            "value": utils.satoshis(transfer.value, token.decimals),
-            "receiver": transfer.receiver.label if transfer.receiver else None,
-            "created": int(transfer.created.timestamp()),
-            "sender": transfer.sender.label if transfer.sender else None,
-            "category": transfer.category,
-            "version": transfer.version,
-            "decimals": token.decimals,
-            "height": transfer.block.height,
-            "token": token.ticker,
-            "txid": transfer.txid,
-        }
-        for transfer in transfers
-    ]
-
-
-async def count_transfers(session: AsyncSession):
-    return await session.scalar(select(func.count(Transfer.id))) or 0
-
-
-async def list_transfers(session: AsyncSession, limit: int, offset: int):
-    transfers = await session.scalars(
-        select(Transfer)
-        .order_by(Transfer.created.desc().limit(limit).offset(offset))
-        .options(
-            joinedload(Transfer.sender),
-            joinedload(Transfer.receiver),
-            joinedload(Transfer.block),
-            joinedload(Transfer.token),
-        )
-    )
-
+def _transfers_fmt(
+    *transfers: Transfer,
+) -> list[dict[str, Any]]:  # pyright: ignore[reportExplicitAny]
     return [
         {
             "value": utils.satoshis(transfer.value, transfer.token.decimals),
@@ -207,3 +158,74 @@ async def list_transfers(session: AsyncSession, limit: int, offset: int):
         }
         for transfer in transfers
     ]
+
+
+def _transfers_options() -> tuple[_AbstractLoad, ...]:
+    return (
+        joinedload(Transfer.sender),
+        joinedload(Transfer.receiver),
+        joinedload(Transfer.block),
+        joinedload(Transfer.token),
+    )
+
+
+async def count_token_transfers(session: AsyncSession, token: Token):
+    return (
+        await session.scalar(
+            select(func.count(Transfer.id)).filter(Transfer.token_id == token.id)
+        )
+        or 0
+    )
+
+
+async def list_token_transfers(
+    session: AsyncSession, token: Token, limit: int, offset: int
+):
+    transfers = await session.scalars(
+        select(Transfer)
+        .filter(Transfer.token_id == token.id)
+        .options(*_transfers_options())
+        .limit(limit)
+        .offset(offset)
+    )
+
+    return _transfers_fmt(*transfers)
+
+
+async def count_transfers(session: AsyncSession):
+    return await session.scalar(select(func.count(Transfer.id))) or 0
+
+
+async def list_transfers(session: AsyncSession, limit: int, offset: int):
+    transfers = await session.scalars(
+        select(Transfer)
+        .order_by(Transfer.created.desc().limit(limit).offset(offset))
+        .options(*_transfers_options())
+    )
+
+    return _transfers_fmt(*transfers)
+
+
+async def count_transaction_transfers(session: AsyncSession, txid: str):
+    return (
+        await session.scalar(
+            select(func.count(Transfer.id)).filter(Transfer.txid == txid)
+        )
+        or 0
+    )
+
+
+async def list_transaction_transfers(
+    session: AsyncSession, txid: str, limit: int, offset: int
+):
+
+    transfers = await session.scalars(
+        select(Transfer)
+        .filter(Transfer.txid == txid)
+        .limit(limit)
+        .offset(offset)
+        .order_by(Transfer.created.desc())
+        .options(*_transfers_options())
+    )
+
+    return _transfers_fmt(*transfers)
