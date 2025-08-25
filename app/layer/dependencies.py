@@ -12,3 +12,7 @@ async def require_token(ticker: str, session: AsyncSession = Depends(get_session
         raise Abort("token", "not-found")
 
     return token
+
+
+async def optional_address(label: str, session: AsyncSession = Depends(get_session)):
+    return await service.get_address(session, label)

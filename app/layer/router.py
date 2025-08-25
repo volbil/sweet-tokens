@@ -107,56 +107,32 @@ async def transaction_transfers(
 
 
 @router.get("/address/{label}", summary="Address stats and balances")
-async def address_info(label: str, session: AsyncSession = Depends(get_session)):
-    return await service.get_address_info(session, label)
+async def address_info(
+    address: Address | None = Depends(deps.optional_address),
+    session: AsyncSession = Depends(get_session),
+):
+    if address is None:
+        return {"stats": {"transfers": 0, "balances": 0}, "balances": ()}
+
+    return await service.get_address_info(session, address)
 
 
 @router.get("/address/{label}/transfers", summary="Address transfers")
 async def address_transfers(
-    label: str,
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
+    address: Address | None = Depends(deps.optional_address),
+    session: AsyncSession = Depends(get_session),
 ):
-    result = []
+    if address is None:
+        return {"pagination": {"pages": 0, "total": 0, "page": 0}, "list": ()}
 
-    if not (address := await Address.filter(label=label).first()):
-        return {
-            "pagination": {"pages": 0, "total": 0, "page": 0},
-            "list": result,
-        }
-
-    total = await address.index.filter().count()
     limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
 
-    index_list = (
-        await address.index.filter().order_by("-created").limit(limit).offset(offset)
-    )
+    total = await service.count_address_transfers(session, address)
+    items = await service.list_address_transfers(session, address, limit, offset)
 
-    for index in index_list:
-        transfer = await index.transfer
-
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        block = await transfer.block
-        token = await index.token
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
 @router.get("/address/{label}/transfers/{ticker}", summary="Address token transfers")

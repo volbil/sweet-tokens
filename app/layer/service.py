@@ -1,5 +1,5 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Select, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from typing import Any
 
@@ -15,6 +15,10 @@ from app.models.address import Address
 
 async def get_token(session: AsyncSession, ticker: str):
     return await session.scalar(select(Token).filter(Token.ticker == ticker))
+
+
+async def get_address(session: AsyncSession, label: str):
+    return await session.scalar(select(Address).filter(Address.label == label))
 
 
 async def get_latest_block(session: AsyncSession):
@@ -233,11 +237,7 @@ async def list_transaction_transfers(
     return _transfers_fmt(*transfers)
 
 
-async def get_address_info(session: AsyncSession, label: str):
-    address = await session.scalar(select(Address).filter(Address.label == label))
-    if address is None:
-        return {"stats": {"transfers": 0, "balances": 0}, "balances": ()}
-
+async def get_address_info(session: AsyncSession, address: Address):
     balances = await session.stream_scalars(
         select(Balance)
         .filter(Balance.address_id == address.id)
@@ -274,3 +274,36 @@ async def get_address_info(session: AsyncSession, label: str):
             async for balance in balances
         ],
     }
+
+
+async def count_address_transfers(session: AsyncSession, address: Address):
+    return (
+        await session.scalar(
+            select(func.count(Transfer.id)).filter(
+                or_(
+                    Transfer.sender_id == address.id, Transfer.receiver_id == address.id
+                )
+            )
+        )
+        or 0
+    )
+
+
+async def list_address_transfers(
+    session: AsyncSession,
+    address: Address,
+    limit: int,
+    offset: int,
+):
+    transfers = await session.scalars(
+        select(Transfer)
+        .filter(
+            or_(Transfer.sender_id == address.id, Transfer.receiver_id == address.id)
+        )
+        .options(*_transfers_options())
+        .order_by(Transfer.created.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+
+    return _transfers_fmt(*transfers)
