@@ -307,3 +307,41 @@ async def list_address_transfers(
     )
 
     return _transfers_fmt(*transfers)
+
+
+async def count_address_token_transfers(
+    session: AsyncSession, address: Address, token: Token
+):
+    return (
+        await session.scalar(
+            select(func.count(Transfer.id)).filter(
+                or_(
+                    Transfer.sender_id == address.id, Transfer.receiver_id == address.id
+                ),
+                Transfer.token_id == token.id,
+            )
+        )
+        or 0
+    )
+
+
+async def list_address_token_transfers(
+    session: AsyncSession,
+    address: Address,
+    token: Token,
+    limit: int,
+    offset: int,
+):
+    transfers = await session.scalars(
+        select(Transfer)
+        .filter(
+            or_(Transfer.sender_id == address.id, Transfer.receiver_id == address.id),
+            Transfer.token_id == token.id,
+        )
+        .options(*_transfers_options())
+        .order_by(Transfer.created.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+
+    return _transfers_fmt(*transfers)
