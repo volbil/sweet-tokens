@@ -2,6 +2,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy import Numeric, String
 from sqlalchemy import ForeignKey
+from decimal import Decimal
 from .base import Base
 
 
@@ -28,7 +29,7 @@ class TokenCost(Base):
 
     action: Mapped[str] = mapped_column(String(32), index=True)
     type: Mapped[str] = mapped_column(String(32), index=True)
-    value: Mapped[Numeric] = mapped_column(Numeric(28, 8))
+    value: Mapped[Decimal] = mapped_column(Numeric(28, 8))
     height: Mapped[int] = mapped_column(index=True)
 
     admin_id = mapped_column(

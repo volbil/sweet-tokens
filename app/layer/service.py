@@ -2,15 +2,18 @@ from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from typing import Any
+import typing
 
 from app.models import Balance, Block, Token, Transfer
-from app import utils
+from app import constants, utils
+from app.chain import get_chain
 
 from sqlalchemy.orm.strategy_options import (
     _AbstractLoad,  # pyright: ignore[reportPrivateUsage]
 )
 
 from app.models.address import Address
+from app.models.cost import FeeAddress, TokenCost
 
 
 async def get_token(session: AsyncSession, ticker: str):
@@ -345,3 +348,95 @@ async def list_address_token_transfers(
     )
 
     return _transfers_fmt(*transfers)
+
+
+async def get_params(session: AsyncSession):
+    settings: typing.Any = utils.get_settings()
+    chain: dict[str, typing.Any] = get_chain(settings.general.chain)
+    latest = await session.scalar(select(Block).order_by(Block.height.desc()).limit(1))
+    assert latest
+
+    fee_address = await session.scalar(
+        select(FeeAddress).order_by(FeeAddress.height.desc()).limit(1)
+    )
+    assert fee_address
+
+    create_root = await session.scalar(
+        select(TokenCost)
+        .filter(
+            TokenCost.action == constants.ACTION_CREATE,
+            TokenCost.type == constants.TOKEN_ROOT,
+        )
+        .order_by(TokenCost.height.desc())
+        .limit(1)
+    )
+    assert create_root
+    create_sub = await session.scalar(
+        select(TokenCost)
+        .filter(
+            TokenCost.action == constants.ACTION_CREATE,
+            TokenCost.type == constants.TOKEN_SUB,
+        )
+        .order_by(TokenCost.height.desc())
+        .limit(1)
+    )
+    assert create_sub
+    create_unique = await session.scalar(
+        select(TokenCost)
+        .filter(
+            TokenCost.action == constants.ACTION_CREATE,
+            TokenCost.type == constants.TOKEN_UNIQUE,
+        )
+        .order_by(TokenCost.height.desc())
+        .limit(1)
+    )
+    assert create_unique
+
+    issue_root = await session.scalar(
+        select(TokenCost)
+        .filter(
+            TokenCost.action == constants.ACTION_ISSUE,
+            TokenCost.type == constants.TOKEN_ROOT,
+        )
+        .order_by(TokenCost.height.desc())
+        .limit(1)
+    )
+    assert issue_root
+    issue_sub = await session.scalar(
+        select(TokenCost)
+        .filter(
+            TokenCost.action == constants.ACTION_ISSUE,
+            TokenCost.type == constants.TOKEN_SUB,
+        )
+        .order_by(TokenCost.height.desc())
+        .limit(1)
+    )
+    assert issue_sub
+
+    admin: list[str] = []
+
+    for address in chain["admin"]:
+        if chain["admin"][address][0] > latest.height:
+            continue
+
+        if chain["admin"][address][1] and chain["admin"][address][1] < latest.height:
+            continue
+
+        admin.append(address)
+
+    return {
+        "chain": settings.general.chain,
+        "fee_address": fee_address.label,
+        "cost": {
+            "create": {
+                "root": utils.satoshis(create_root.value, chain["decimals"]),
+                "sub": utils.satoshis(create_sub.value, chain["decimals"]),
+                "unique": utils.satoshis(create_unique.value, chain["decimals"]),
+            },
+            "issue": {
+                "root": utils.satoshis(issue_root.value, chain["decimals"]),
+                "sub": utils.satoshis(issue_sub.value, chain["decimals"]),
+            },
+        },
+        "admin": admin,
+    }
