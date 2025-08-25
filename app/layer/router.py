@@ -107,36 +107,8 @@ async def transaction_transfers(
 
 
 @router.get("/address/{label}", summary="Address stats and balances")
-async def address_info(label: str):
-    result = []
-
-    if not (address := await Address.filter(label=label).first()):
-        return {"stats": {"transfers": 0, "balances": 0}, "balances": result}
-
-    async for balance in address.balances:
-        token = await balance.token
-
-        transfers = await address.index.filter(token=token).count()
-
-        result.append(
-            {
-                "received": utils.satoshis(balance.received, token.decimals),
-                "value": utils.satoshis(balance.value, token.decimals),
-                "sent": utils.satoshis(balance.sent, token.decimals),
-                "decimals": token.decimals,
-                "address": address.label,
-                "transfers": transfers,
-                "ticker": token.ticker,
-            }
-        )
-
-    transfers_count = await address.index.filter().count()
-    balances_count = await address.balances.filter().count()
-
-    return {
-        "stats": {"transfers": transfers_count, "balances": balances_count},
-        "balances": result,
-    }
+async def address_info(label: str, session: AsyncSession = Depends(get_session)):
+    return await service.get_address_info(session, label)
 
 
 @router.get("/address/{label}/transfers", summary="Address transfers")

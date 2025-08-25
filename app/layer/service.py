@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import joinedload
 from typing import Any
 
@@ -9,6 +9,8 @@ from app import utils
 from sqlalchemy.orm.strategy_options import (
     _AbstractLoad,  # pyright: ignore[reportPrivateUsage]
 )
+
+from app.models.address import Address
 
 
 async def get_token(session: AsyncSession, ticker: str):
@@ -229,3 +231,46 @@ async def list_transaction_transfers(
     )
 
     return _transfers_fmt(*transfers)
+
+
+async def get_address_info(session: AsyncSession, label: str):
+    address = await session.scalar(select(Address).filter(Address.label == label))
+    if address is None:
+        return {"stats": {"transfers": 0, "balances": 0}, "balances": ()}
+
+    balances = await session.stream_scalars(
+        select(Balance)
+        .filter(Balance.address_id == address.id)
+        .options(joinedload(Balance.token))
+    )
+
+    query_transfers_count = select(func.count(Transfer.id)).filter(
+        or_(Transfer.receiver_id == address.id, Transfer.sender_id == address.id)
+    )
+
+    total_transfers = await session.scalar(query_transfers_count) or 0
+    total_balances = (
+        await session.scalar(
+            select(func.count(Balance.id)).filter(Balance.address_id == address.id)
+        )
+        or 0
+    )
+    stats = {"transfers": total_transfers, "balances": total_balances}
+
+    return {
+        "stats": stats,
+        "balances": [
+            {
+                "received": utils.satoshis(balance.received, balance.token.decimals),
+                "value": utils.satoshis(balance.value, balance.token.decimals),
+                "sent": utils.satoshis(balance.sent, balance.token.decimals),
+                "decimals": balance.token.decimals,
+                "address": address.label,
+                "transfers": await session.scalar(
+                    query_transfers_count.filter(Transfer.token_id == balance.token_id)
+                ),
+                "ticker": balance.token.ticker,
+            }
+            async for balance in balances
+        ],
+    }
