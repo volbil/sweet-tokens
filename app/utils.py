@@ -6,6 +6,8 @@ import aiohttp
 import json
 import math
 
+Number = int | float | Decimal
+
 
 @lru_cache()
 def get_settings():
@@ -35,7 +37,7 @@ def to_timestamp(date: datetime | None) -> int | None:
 
 
 # Helper function for toroise pagination
-def pagination(page, size=20):
+def pagination(page: int, size: int = 20):
     limit = size
     offset = (limit * (page)) - limit
 
@@ -43,7 +45,7 @@ def pagination(page, size=20):
 
 
 # Helper function to make pagication dict for api
-def pagination_dict(total, page, size):
+def pagination_dict(total: int | float, page: int | float, size: int | float):
     return {"pages": math.ceil(total / size), "total": total, "page": page}
 
 
@@ -52,7 +54,7 @@ def log_message(message):
     print(f"{now} {message}")
 
 
-def satoshis(value, decimals):
+def satoshis(value: Number, decimals: Number):
     return int(float(value) * math.pow(10, decimals))
 
 
