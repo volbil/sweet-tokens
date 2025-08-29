@@ -1,17 +1,21 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, Query
+
 from . import service, dependencies as deps
+from .schema import (
+    AddressInfo,
+    BlockInfo,
+    LayerParams,
+    TokenHolderInfo,
+    TokenInfo,
+    TokenTransferInfo,
+)
 from app.database import get_session
-from app.chain import get_chain
-from app.errors import Abort
-from app import constants
+from app.schemas import Paginated
 from app import utils
 
 from app.models import (
-    FeeAddress,
-    TokenCost,
     Address,
-    Block,
     Token,
 )
 
@@ -19,12 +23,12 @@ from app.models import (
 router = APIRouter(prefix="/layer", tags=["Layer"])
 
 
-@router.get("/latest", summary="Latest synced block")
+@router.get("/latest", summary="Latest synced block", response_model=BlockInfo)
 async def latest(session: AsyncSession = Depends(get_session)):
     return await service.get_latest_block(session)
 
 
-@router.get("/tokens", summary="Tokens list")
+@router.get("/tokens", summary="Tokens list", response_model=Paginated[TokenInfo])
 async def tokens_list(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
@@ -39,7 +43,7 @@ async def tokens_list(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/token/{ticker}", summary="Token info")
+@router.get("/token/{ticker}", summary="Token info", response_model=TokenInfo)
 async def token_info(
     token: Token = Depends(deps.require_token),
     session: AsyncSession = Depends(get_session),
@@ -47,7 +51,11 @@ async def token_info(
     return await service.get_token_info(session, token)
 
 
-@router.get("/token/{ticker}/holders", summary="Token holders")
+@router.get(
+    "/token/{ticker}/holders",
+    summary="Token holders",
+    response_model=Paginated[TokenHolderInfo],
+)
 async def token_holders(
     token: Token = Depends(deps.require_token),
     page: int = Query(default=1, ge=1),
@@ -62,7 +70,11 @@ async def token_holders(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/token/{ticker}/transfers", summary="Token transfers")
+@router.get(
+    "/token/{ticker}/transfers",
+    summary="Token transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
 async def token_transfers(
     token: Token = Depends(deps.require_token),
     page: int = Query(default=1, ge=1),
@@ -77,7 +89,9 @@ async def token_transfers(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/transfers", summary="Transfers list")
+@router.get(
+    "/transfers", summary="Transfers list", response_model=Paginated[TokenTransferInfo]
+)
 async def transfers_list(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
@@ -91,7 +105,11 @@ async def transfers_list(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/tx/{txid}", summary="Transaction transfers")
+@router.get(
+    "/tx/{txid}",
+    summary="Transaction transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
 async def transaction_transfers(
     txid: str,
     page: int = Query(default=1, ge=1),
@@ -106,7 +124,9 @@ async def transaction_transfers(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/address/{label}", summary="Address stats and balances")
+@router.get(
+    "/address/{label}", summary="Address stats and balances", response_model=AddressInfo
+)
 async def address_info(
     address: Address | None = Depends(deps.optional_address),
     session: AsyncSession = Depends(get_session),
@@ -117,7 +137,11 @@ async def address_info(
     return await service.get_address_info(session, address)
 
 
-@router.get("/address/{label}/transfers", summary="Address transfers")
+@router.get(
+    "/address/{label}/transfers",
+    summary="Address transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
 async def address_transfers(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
@@ -135,7 +159,11 @@ async def address_transfers(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/address/{label}/transfers/{ticker}", summary="Address token transfers")
+@router.get(
+    "/address/{label}/transfers/{ticker}",
+    summary="Address token transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
 async def address_token_transfers(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
@@ -156,6 +184,6 @@ async def address_token_transfers(
     return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/params", summary="Layer params")
+@router.get("/params", summary="Layer params", response_model=LayerParams)
 async def params(session: AsyncSession = Depends(get_session)):
     return await service.get_params(session)
