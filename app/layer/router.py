@@ -2,17 +2,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, Query
 
 from . import service, dependencies as deps
-from .schema import (
-    AddressInfo,
-    BlockInfo,
-    LayerParams,
-    TokenHolderInfo,
-    TokenInfo,
-    TokenTransferInfo,
-)
 from app.database import get_session
 from app.schemas import Paginated
 from app import utils
+
+from .schemas import (
+    TokenTransferInfo,
+    TokenHolderInfo,
+    AddressInfo,
+    LayerParams,
+    TokenInfo,
+    BlockInfo,
+)
 
 from app.models import (
     Address,
