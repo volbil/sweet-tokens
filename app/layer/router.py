@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Query
-from app.chain import get_chain
-from app.errors import Abort
-from app import constants
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query
+
+from . import service, dependencies as deps
+from app.database import get_session
+from app.schemas import Paginated
 from app import utils
 
+from .schemas import (
+    TokenTransferInfo,
+    TokenHolderInfo,
+    AddressInfo,
+    LayerParams,
+    TokenInfo,
+    BlockInfo,
+)
+
 from app.models import (
-    FeeAddress,
-    TokenCost,
-    Transfer,
     Address,
-    Balance,
-    Block,
     Token,
 )
 
@@ -18,457 +24,167 @@ from app.models import (
 router = APIRouter(prefix="/layer", tags=["Layer"])
 
 
-@router.get("/latest", summary="Latest synced block")
-async def latest():
-    latest = await Block.filter().order_by("-height").limit(1).first()
-    holders = await Balance.filter(value__gt=0).count()
-    transfers = await Transfer.filter().count()
-    tokens = await Token.filter().count()
-
-    return {
-        "created": int(latest.created.timestamp()),
-        "height": latest.height,
-        "hash": latest.hash,
-        "stats": {"transfers": transfers, "holders": holders, "tokens": tokens},
-    }
+@router.get("/latest", summary="Latest synced block", response_model=BlockInfo)
+async def latest(session: AsyncSession = Depends(get_session)):
+    return await service.get_latest_block(session)
 
 
-@router.get("/tokens", summary="Tokens list")
+@router.get("/tokens", summary="Tokens list", response_model=Paginated[TokenInfo])
 async def tokens_list(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
     type: str = Query(default=None),
+    session: AsyncSession = Depends(get_session),
 ):
-    query = Token.filter()
-
-    if type:
-        query = query.filter(type=type)
-
-    total = await query.count()
     limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
 
-    tokens = await query.order_by("-created").limit(limit).offset(offset)
+    total = await service.count_tokens(session, type)
+    items = await service.list_tokens(session, type, limit, offset)
 
-    for token in tokens:
-        holders = await token.balances.filter(value__gt=0).count()
-        transfers = await token.transfers.filter().count()
-
-        result.append(
-            {
-                "supply": utils.satoshis(token.supply, token.decimals),
-                "reissuable": token.reissuable,
-                "decimals": token.decimals,
-                "transfers": transfers,
-                "ticker": token.ticker,
-                "type": token.type,
-                "holders": holders,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/token/{ticker}", summary="Token info")
-async def token_info(ticker: str):
-    if not (token := await Token.filter(ticker=ticker).first()):
-        raise Abort("token", "not-found")
-
-    holders = await token.balances.filter(value__gt=0).count()
-    transfers = await token.transfers.filter().count()
-
-    return {
-        "supply": utils.satoshis(token.supply, token.decimals),
-        "reissuable": token.reissuable,
-        "decimals": token.decimals,
-        "transfers": transfers,
-        "ticker": token.ticker,
-        "type": token.type,
-        "holders": holders,
-    }
-
-
-@router.get("/token/{ticker}/holders", summary="Token holders")
-async def token_holders(
-    ticker: str,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
+@router.get("/token/{ticker}", summary="Token info", response_model=TokenInfo)
+async def token_info(
+    token: Token = Depends(deps.require_token),
+    session: AsyncSession = Depends(get_session),
 ):
-    if not (token := await Token.filter(ticker=ticker).first()):
-        raise Abort("token", "not-found")
-
-    total = await token.balances.filter(value__gt=0).count()
-    limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
-
-    holders = (
-        await token.balances.filter(value__gt=0)
-        .order_by("-value")
-        .limit(limit)
-        .offset(offset)
-    )
-
-    for balance in holders:
-        address = await balance.address
-
-        result.append(
-            {
-                "received": utils.satoshis(balance.received, token.decimals),
-                "value": utils.satoshis(balance.value, token.decimals),
-                "sent": utils.satoshis(balance.sent, token.decimals),
-                "decimals": token.decimals,
-                "address": address.label,
-                "ticker": token.ticker,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
-
-
-@router.get("/token/{ticker}/transfers", summary="Token transfers")
-async def token_transfers(
-    ticker: str,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
-):
-    if not (token := await Token.filter(ticker=ticker).first()):
-        raise Abort("token", "not-found")
-
-    total = await token.transfers.filter().count()
-    limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
-
-    transfers = (
-        await token.transfers.filter()
-        .order_by("-created")
-        .limit(limit)
-        .offset(offset)
-    )
-
-    for transfer in transfers:
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        block = await transfer.block
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
-
-
-@router.get("/transfers", summary="Transfers list")
-async def transfers_list(
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
-):
-    total = await Transfer.filter().count()
-    limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
-
-    transfers = (
-        await Transfer.filter().order_by("-created").limit(limit).offset(offset)
-    )
-
-    for transfer in transfers:
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        token = await transfer.token
-        block = await transfer.block
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
-
-
-@router.get("/tx/{txid}", summary="Transaction transfers")
-async def transfer_info(
-    txid: str,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
-):
-    total = await Transfer.filter(txid=txid).count()
-    limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-    result = []
-
-    transfers = (
-        await Transfer.filter(txid=txid)
-        .order_by("-created")
-        .limit(limit)
-        .offset(offset)
-    )
-
-    for transfer in transfers:
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        token = await transfer.token
-        block = await transfer.block
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
-
-
-@router.get("/address/{label}", summary="Address stats and balances")
-async def address_info(label: str):
-    result = []
-
-    if not (address := await Address.filter(label=label).first()):
-        return {"stats": {"transfers": 0, "balances": 0}, "balances": result}
-
-    async for balance in address.balances:
-        token = await balance.token
-
-        transfers = await address.index.filter(token=token).count()
-
-        result.append(
-            {
-                "received": utils.satoshis(balance.received, token.decimals),
-                "value": utils.satoshis(balance.value, token.decimals),
-                "sent": utils.satoshis(balance.sent, token.decimals),
-                "decimals": token.decimals,
-                "address": address.label,
-                "transfers": transfers,
-                "ticker": token.ticker,
-            }
-        )
-
-    transfers_count = await address.index.filter().count()
-    balances_count = await address.balances.filter().count()
-
-    return {
-        "stats": {"transfers": transfers_count, "balances": balances_count},
-        "balances": result,
-    }
-
-
-@router.get("/address/{label}/transfers", summary="Address transfers")
-async def address_transfers(
-    label: str,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=20, ge=1, le=100),
-):
-    result = []
-
-    if not (address := await Address.filter(label=label).first()):
-        return {
-            "pagination": {"pages": 0, "total": 0, "page": 0},
-            "list": result,
-        }
-
-    total = await address.index.filter().count()
-    limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
-
-    index_list = (
-        await address.index.filter()
-        .order_by("-created")
-        .limit(limit)
-        .offset(offset)
-    )
-
-    for index in index_list:
-        transfer = await index.transfer
-
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        block = await transfer.block
-        token = await index.token
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
+    return await service.get_token_info(session, token)
 
 
 @router.get(
-    "/address/{label}/transfers/{ticker}", summary="Address token transfers"
+    "/token/{ticker}/holders",
+    summary="Token holders",
+    response_model=Paginated[TokenHolderInfo],
 )
-async def address_token_transfers(
-    label: str,
-    ticker: str,
+async def token_holders(
+    token: Token = Depends(deps.require_token),
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
 ):
-    result = []
-
-    if not (address := await Address.filter(label=label).first()):
-        return {
-            "pagination": {"pages": 0, "total": 0, "page": 0},
-            "list": result,
-        }
-
-    if not (token := await Token.filter(ticker=ticker).first()):
-        raise Abort("token", "not-found")
-
-    total = await address.index.filter(token=token).count()
     limit, offset, size = utils.pagination(page, size)
-    pagination = utils.pagination_dict(total, page, size)
 
-    index_list = (
-        await address.index.filter(token=token)
-        .order_by("-created")
-        .limit(limit)
-        .offset(offset)
+    total = await service.count_token_holders(session, token)
+    items = await service.list_token_holders(session, token, limit, offset)
+
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
+
+
+@router.get(
+    "/token/{ticker}/transfers",
+    summary="Token transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
+async def token_transfers(
+    token: Token = Depends(deps.require_token),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    limit, offset, size = utils.pagination(page, size)
+
+    total = await service.count_token_transfers(session, token)
+    items = await service.list_token_transfers(session, token, limit, offset)
+
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
+
+
+@router.get(
+    "/transfers", summary="Transfers list", response_model=Paginated[TokenTransferInfo]
+)
+async def transfers_list(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    limit, offset, size = utils.pagination(page, size)
+
+    total = await service.count_transfers(session)
+    items = await service.list_transfers(session, limit, offset)
+
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
+
+
+@router.get(
+    "/tx/{txid}",
+    summary="Transaction transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
+async def transaction_transfers(
+    txid: str,
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    limit, offset, size = utils.pagination(page, size)
+
+    total = await service.count_transaction_transfers(session, txid)
+    items = await service.list_transaction_transfers(session, txid, limit, offset)
+
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
+
+
+@router.get(
+    "/address/{label}", summary="Address stats and balances", response_model=AddressInfo
+)
+async def address_info(
+    address: Address | None = Depends(deps.optional_address),
+    session: AsyncSession = Depends(get_session),
+):
+    if address is None:
+        return {"stats": {"transfers": 0, "balances": 0}, "balances": ()}
+
+    return await service.get_address_info(session, address)
+
+
+@router.get(
+    "/address/{label}/transfers",
+    summary="Address transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
+async def address_transfers(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    address: Address | None = Depends(deps.optional_address),
+    session: AsyncSession = Depends(get_session),
+):
+    if address is None:
+        return {"pagination": {"pages": 0, "total": 0, "page": 0}, "list": ()}
+
+    limit, offset, size = utils.pagination(page, size)
+
+    total = await service.count_address_transfers(session, address)
+    items = await service.list_address_transfers(session, address, limit, offset)
+
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
+
+
+@router.get(
+    "/address/{label}/transfers/{ticker}",
+    summary="Address token transfers",
+    response_model=Paginated[TokenTransferInfo],
+)
+async def address_token_transfers(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    address: Address | None = Depends(deps.optional_address),
+    token: Token = Depends(deps.require_token),
+    session: AsyncSession = Depends(get_session),
+):
+    if address is None:
+        return {"pagination": {"pages": 0, "total": 0, "page": 0}, "list": ()}
+
+    limit, offset, size = utils.pagination(page, size)
+
+    total = await service.count_address_token_transfers(session, address, token)
+    items = await service.list_address_token_transfers(
+        session, address, token, limit, offset
     )
 
-    for index in index_list:
-        transfer = await index.transfer
-
-        receiver = await transfer.receiver
-        sender = await transfer.sender
-        block = await transfer.block
-
-        result.append(
-            {
-                "value": utils.satoshis(transfer.value, token.decimals),
-                "receiver": receiver.label if receiver else None,
-                "created": int(transfer.created.timestamp()),
-                "sender": sender.label if sender else None,
-                "category": transfer.category,
-                "version": transfer.version,
-                "decimals": token.decimals,
-                "height": block.height,
-                "token": token.ticker,
-                "txid": transfer.txid,
-            }
-        )
-
-    return {"pagination": pagination, "list": result}
+    return {"pagination": utils.pagination_dict(total, page, size), "list": items}
 
 
-@router.get("/params", summary="Layer params")
-async def params():
-    settings = get_settings()
-    chain = get_chain(settings.general.chain)
-
-    latest = await Block.filter().order_by("-height").limit(1).first()
-
-    fee_address = await FeeAddress.filter().order_by("-height").first()
-
-    create_root = (
-        await TokenCost.filter(
-            action=constants.ACTION_CREATE, type=constants.TOKEN_ROOT
-        )
-        .order_by("-height")
-        .first()
-    )
-
-    create_sub = (
-        await TokenCost.filter(
-            action=constants.ACTION_CREATE, type=constants.TOKEN_SUB
-        )
-        .order_by("-height")
-        .first()
-    )
-
-    create_unique = (
-        await TokenCost.filter(
-            action=constants.ACTION_CREATE, type=constants.TOKEN_UNIQUE
-        )
-        .order_by("-height")
-        .first()
-    )
-
-    issue_root = (
-        await TokenCost.filter(
-            action=constants.ACTION_ISSUE, type=constants.TOKEN_ROOT
-        )
-        .order_by("-height")
-        .first()
-    )
-
-    issue_sub = (
-        await TokenCost.filter(
-            action=constants.ACTION_ISSUE, type=constants.TOKEN_SUB
-        )
-        .order_by("-height")
-        .first()
-    )
-
-    admin = []
-
-    for address in chain["admin"]:
-        if chain["admin"][address][0] > latest.height:
-            continue
-
-        if (
-            chain["admin"][address][1]
-            and chain["admin"][address][1] < latest.height
-        ):
-            continue
-
-        admin.append(address)
-
-    return {
-        "chain": config.chain,
-        "fee_address": fee_address.label,
-        "cost": {
-            "create": {
-                "root": utils.satoshis(create_root.value, chain["decimals"]),
-                "sub": utils.satoshis(create_sub.value, chain["decimals"]),
-                "unique": utils.satoshis(
-                    create_unique.value, chain["decimals"]
-                ),
-            },
-            "issue": {
-                "root": utils.satoshis(issue_root.value, chain["decimals"]),
-                "sub": utils.satoshis(issue_sub.value, chain["decimals"]),
-            },
-        },
-        "admin": admin,
-    }
+@router.get("/params", summary="Layer params", response_model=LayerParams)
+async def params(session: AsyncSession = Depends(get_session)):
+    return await service.get_params(session)
