@@ -3,6 +3,7 @@ from dynaconf import Dynaconf
 from datetime import datetime
 from decimal import Decimal
 import aiohttp
+import typing
 import json
 import math
 
@@ -10,7 +11,7 @@ Number = int | float | Decimal
 
 
 @lru_cache()
-def get_settings():
+def get_settings() -> typing.Any:
     """Returns lru cached system settings"""
 
     return Dynaconf(
@@ -66,7 +67,7 @@ def dead_response(message="Invalid Request", rid="sync"):
     return {"error": {"code": 404, "message": message}, "id": rid}
 
 
-async def make_request(method, params=[]):
+async def make_request(method: str, params: typing.Any = ()) -> typing.Any:
     settings = get_settings()
     async with aiohttp.ClientSession() as session:
         headers = {"content-type": "text/plain;"}
