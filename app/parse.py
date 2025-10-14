@@ -1,5 +1,6 @@
 from app.utils import make_request
 from datetime import datetime
+import typing
 
 
 async def parse_transaction(txid, height=None, tx_index=None):
@@ -34,12 +35,8 @@ async def parse_transaction(txid, height=None, tx_index=None):
             witness = []
 
             if "txinwitness" in vin:
-                for witness_index, witness_data in enumerate(
-                    vin["txinwitness"]
-                ):
-                    witness.append(
-                        {"index": witness_index, "script": witness_data}
-                    )
+                for witness_index, witness_data in enumerate(vin["txinwitness"]):
+                    witness.append({"index": witness_index, "script": witness_data})
 
             inputs.append(
                 {
@@ -99,7 +96,7 @@ async def parse_transaction(txid, height=None, tx_index=None):
     }
 
 
-async def parse_block(height):
+async def parse_block(height) -> dict[str, typing.Any]:
     result = {}
 
     block_hash = await make_request("getblockhash", [height])
@@ -107,9 +104,7 @@ async def parse_block(height):
     block_data = await make_request("getblock", [block_hash])
 
     prev_hash = (
-        block_data["previousblockhash"]
-        if "previousblockhash" in block_data
-        else None
+        block_data["previousblockhash"] if "previousblockhash" in block_data else None
     )
 
     result["block"] = {

@@ -1,3 +1,6 @@
+import typing
+
+
 CHAIN = {
     "mbc-mainnet": {
         "id": "01",
@@ -6,9 +9,7 @@ CHAIN = {
             "height": 1807100,
         },
         "decimals": 4,
-        "admin": {
-            "mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1806960, None]
-        },
+        "admin": {"mbc1q3tv8yfalfkrxdhez8ksuwqar25wv5skuwuh32n": [1806960, None]},
         "fee": 1000,  # 0.1 MBC in satoshis
         "marker": 1000,  # 0.1 MBC in satoshis,
         "protected": ["MBC", "MICROBITCOIN"],
@@ -21,7 +22,7 @@ CHAIN = {
 }
 
 
-def get_chain(name):
+def get_chain(name) -> dict[str, typing.Any]:
     if name not in CHAIN:
         raise ValueError(f"Invalid chain name {name}")
 
