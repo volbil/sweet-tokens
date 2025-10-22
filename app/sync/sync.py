@@ -13,24 +13,26 @@ from app.consensus.process import (
 )
 
 
-async def emergency_reorg(reorg_height):
-    latest = await Block.filter().order_by("-height").limit(1).first()
+async def emergency_reorg(session: AsyncSession, reorg_height: int):
+    latest = await session.scalar(select(Block).order_by(Block.height.desc()).limit(1))
+    assert latest is not None
 
     # Process chain reorgs
     while reorg_height < latest.height:
         log_message(f"Found reorg at height #{latest.height}")
 
         reorg_block = latest
-        latest = await Block.filter(height=(latest.height - 1)).first()
+        latest = await session.scalar(
+            select(Block).filter(Block.height == latest.height - 1)
+        )
+        assert latest is not None
 
-        await process_reorg(reorg_block)
+        await process_reorg(session, reorg_block)
 
 
 async def sync_chain(session: AsyncSession):
     # Init genesis
-    if not await session.scalar(
-        select(Block).order_by(Block.height.desc()).limit(1)
-    ):
+    if not await session.scalar(select(Block).order_by(Block.height.desc()).limit(1)):
         log_message("Adding genesis block to db")
 
         settings = get_settings()
@@ -45,20 +47,22 @@ async def sync_chain(session: AsyncSession):
         await process_block(session, block_data)
 
     chain_data = await make_request("getblockchaininfo")
-    latest = await session.scalar(
-        select(Block).order_by(Block.height.desc()).limit(1)
-    )
+    latest = await session.scalar(select(Block).order_by(Block.height.desc()).limit(1))
+
+    assert latest is not None
 
     # Process chain reorgs
     while latest.hash != await make_request("getblockhash", [latest.height]):
         log_message(f"Found reorg at height #{latest.height}")
 
         reorg_block = latest
+
         latest = await session.scalar(
             select(Block).filter(Block.height == latest.height - 1)
         )
+        assert latest is not None
 
-        await process_reorg(reorg_block)
+        await process_reorg(session, reorg_block)
 
     display_log = latest.height + 10 > chain_data["blocks"]
 
