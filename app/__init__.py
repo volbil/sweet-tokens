@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import sessionmanager
 import fastapi.openapi.utils as fu
+from app.utils import get_settings
 from fastapi import FastAPI
 from app import constants
 from app import errors
@@ -21,9 +23,7 @@ def create_app(init_db: bool = True) -> FastAPI:
             if sessionmanager._engine is not None:
                 await sessionmanager.close()
 
-    fu.validation_error_response_definition = (
-        errors.ErrorResponse.model_json_schema()
-    )
+    fu.validation_error_response_definition = errors.ErrorResponse.model_json_schema()
 
     app = FastAPI(
         title="Sweet Tokens",
