@@ -4,7 +4,7 @@ from app.utils import log_message
 from sqlalchemy import select
 
 
-async def process_unban(session: AsyncSessioninputs, outputs, block, txid):
+async def process_unban(session: AsyncSession, inputs, outputs, block, txid):
     send_address_label = list(inputs)[0]
     outputs.pop(send_address_label)
     receive_address_label = list(outputs)[0]
