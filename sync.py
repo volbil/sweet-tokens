@@ -1,18 +1,20 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from tortoise import Tortoise
 import asyncio
-import config
+
+from app.database import sessionmanager
+from app.utils import get_settings
 
 
 async def init_scheduler():
-    await Tortoise.init(config=config.tortoise)
-    await Tortoise.generate_schemas()
+    settings = get_settings()
+
+    sessionmanager.init(settings.database.endpoint)
 
     scheduler = AsyncIOScheduler()
 
-    from service.sync import sync_chain
+    from app.sync import run_sync_chain
 
-    scheduler.add_job(sync_chain, "interval", seconds=10)
+    scheduler.add_job(run_sync_chain, "interval", seconds=10)
     scheduler.start()
 
     try:
