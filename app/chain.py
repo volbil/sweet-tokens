@@ -18,7 +18,24 @@ CHAIN = {
             "create": {"root": 1, "sub": 615, "unique": 10},
             "issue": {"root": 51800, "sub": 615},
         },
-    }
+    },
+    "sugar-testnet": {
+        "id": "02",
+        "genesis": {
+            "hash": "36a85721176bd211301caf19162728cb5864814930b7c8b254786b8511d6c3bc",
+            "height": 39391879,
+        },
+        "decimals": 8,
+        "admin": {"sugar1q9c3pq4yff5ukt4g2jp7ae672sz8fgnv2gvwgd6": [39130381, None]},
+        "fee": 10000000,  # 0.1 SUGAR in satoshis
+        "marker": 10000000,  # 0.1 SUGAR in satoshis,
+        "protected": ["SUGAR", "SUGARCHAIN"],
+        "cost": {
+            "address": "sugar1q9c3pq4yff5ukt4g2jp7ae672sz8fgnv2gvwgd6",
+            "create": {"root": 1, "sub": 1, "unique": 1},
+            "issue": {"root": 1, "sub": 1},
+        },
+    },
 }
 
 
