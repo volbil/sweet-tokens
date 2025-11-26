@@ -84,7 +84,7 @@ async def parse_transaction(txid, height=None, tx_index=None):
         "lock_time": tx_data["locktime"],
         "version": tx_data["version"],
         "timestamp": tx_data["time"],
-        "weight": tx_data["weight"],
+        # "weight": tx_data["weight"],
         "index_in_block": tx_index,
         "hash": tx_data["txid"],
         "size": tx_data["size"],
