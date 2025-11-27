@@ -208,7 +208,9 @@ async def count_transfers(session: AsyncSession):
 async def list_transfers(session: AsyncSession, limit: int, offset: int):
     transfers = await session.scalars(
         select(Transfer)
-        .order_by(Transfer.created.desc().limit(limit).offset(offset))
+        .order_by(Transfer.created.desc())
+        .limit(limit)
+        .offset(offset)
         .options(*_transfers_options())
     )
 
