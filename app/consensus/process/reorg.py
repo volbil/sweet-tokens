@@ -7,7 +7,7 @@ from app import constants
 
 
 async def process_reorg(session: AsyncSession, block):
-    transfers = await session.scalars(
+    transfers = await session.stream_scalars(
         select(Transfer)
         .options(joinedload(Transfer.receiver))
         .options(joinedload(Transfer.sender))
@@ -73,9 +73,7 @@ async def process_reorg(session: AsyncSession, block):
     )
 
     unbans = await session.scalars(
-        select(Unban)
-        .options(joinedload(Unban.address))
-        .filter(Unban.block == block)
+        select(Unban).options(joinedload(Unban.address)).filter(Unban.block == block)
     )
 
     for ban in bans:
