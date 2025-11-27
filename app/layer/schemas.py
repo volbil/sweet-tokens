@@ -10,7 +10,7 @@ class BlockStats(CustomModel):
 class BlockInfo(CustomModel):
     created: datetime_pd
     height: int
-    hash: int
+    hash: str
     stats: BlockStats
 
 
